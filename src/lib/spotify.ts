@@ -1,4 +1,4 @@
-import { SpotifyApi, SpotifyWebApiError } from '@spotify/web-api-ts-sdk'
+import { SpotifyApi } from '@spotify/web-api-ts-sdk'
 
 export class SpotifyService {
   private api: SpotifyApi
@@ -447,6 +447,24 @@ export class SpotifyService {
       await this.api.currentUser.unfollowArtistsOrUsers([id], 'artist')
     } catch (error) {
       console.error('Error unfollowing artist:', error)
+      throw error
+    }
+  }
+
+  // Browse
+  async getBrowseCategories(limit = 20, offset = 0) {
+    try {
+      // Validate limit parameter (Spotify API requires 1-50)
+      const validLimit = Math.max(1, Math.min(50, limit))
+      const validOffset = Math.max(0, offset)
+      
+      return await this.api.browse.getCategories({
+        limit: validLimit,
+        offset: validOffset,
+        locale: 'en_US'
+      })
+    } catch (error) {
+      console.error('Error fetching browse categories:', error)
       throw error
     }
   }

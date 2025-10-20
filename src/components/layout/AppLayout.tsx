@@ -5,8 +5,9 @@ import { useSession } from 'next-auth/react'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { MusicPlayer } from '../player/MusicPlayer'
-import { ChatBot, ChatButton } from '../ai/ChatBot'
+import ChatBot from '../ai/ChatBot'
 import { cn } from '@/lib/utils'
+
 
 interface Track {
   id: string
@@ -38,8 +39,7 @@ export function AppLayout({
   const [isPlaying, setIsPlaying] = useState(false)
   const [isShuffled, setIsShuffled] = useState(false)
   const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off')
-  const [isChatBotVisible, setIsChatBotVisible] = useState(false)
-  const [hasNewChatMessage, setHasNewChatMessage] = useState(false)
+
 
   // Mock current track for demo
   useEffect(() => {
@@ -112,25 +112,23 @@ export function AppLayout({
     console.log('Liking track:', trackId)
   }
 
-  const handleChatBotToggle = () => {
-    setIsChatBotVisible(!isChatBotVisible)
-    if (!isChatBotVisible) {
-      setHasNewChatMessage(false)
-    }
-  }
+
 
 
 
   return (
     <div className="h-screen flex flex-col bg-spotify-black">
-      <div className="flex flex-1 overflow-hidden">
+      <div className={cn(
+        "flex flex-1 overflow-hidden",
+        currentTrack ? "pb-24" : "pb-0"
+      )}>
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 hidden md:block">
           <Sidebar />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Top Bar */}
           <TopBar 
             showSearch={showSearch}
@@ -163,26 +161,7 @@ export function AppLayout({
       )}
 
       {/* AI Chatbot */}
-      <ChatBot
-        isVisible={isChatBotVisible}
-        onClose={() => setIsChatBotVisible(false)}
-        onPlayTrack={handlePlayTrack}
-        onLikeTrack={handleLikeTrack}
-        currentContext={{
-          page: 'home',
-          currentTrack: currentTrack?.id,
-          recentTracks: [],
-          mood: 'energetic'
-        }}
-      />
-
-      {/* Chat Button */}
-      {!isChatBotVisible && (
-        <ChatButton
-          onClick={handleChatBotToggle}
-          hasNewMessage={hasNewChatMessage}
-        />
-      )}
+      <ChatBot currentTrack={currentTrack} />
     </div>
   )
 }

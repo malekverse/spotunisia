@@ -173,10 +173,13 @@ export function MusicPlayer({
     <motion.div
       layout
       className={cn(
-        'fixed bottom-0 left-0 right-0 bg-spotify-gray border-t border-spotify-lightgray z-50',
-        isExpanded ? 'h-screen' : 'h-20',
+        'fixed bottom-0 left-0 right-0 liquid-glass-strong border-t border-white/20 z-50 backdrop-blur-xs',
+        isExpanded ? 'h-screen' : 'h-24',
         className
       )}
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", damping: 25, stiffness: 200 }}
     >
       <audio ref={audioRef} />
       
@@ -338,105 +341,149 @@ export function MusicPlayer({
         ) : (
           <motion.div
             key="compact"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-full flex items-center px-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="h-full flex items-center px-6 py-3"
           >
             {/* Track Info */}
-            <div className="flex items-center space-x-3 flex-1 min-w-0">
-              <motion.img
-                layoutId="track-image"
-                src={currentTrack.image}
-                alt={currentTrack.name}
-                className="w-12 h-12 rounded cursor-pointer"
-                onClick={() => setIsExpanded(true)}
-              />
+            <motion.div 
+              className="flex items-center space-x-4 flex-1 min-w-0"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", damping: 20, stiffness: 400 }}
+            >
+              <motion.div
+                className="relative group"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <motion.img
+                  layoutId="track-image"
+                  src={currentTrack.image}
+                  alt={currentTrack.name}
+                  className="w-14 h-14 rounded-xl cursor-pointer shadow-lg border border-white/10 object-cover"
+                  onClick={() => setIsExpanded(true)}
+                />
+                <div className="absolute inset-0 bg-black/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <Maximize2 className="w-4 h-4 text-white" />
+                </div>
+              </motion.div>
               <div className="min-w-0 flex-1">
                 <motion.p 
                   layoutId="track-name"
-                  className="text-white text-sm font-medium truncate cursor-pointer hover:underline"
+                  className="text-white text-sm font-semibold truncate cursor-pointer hover:text-spotify-green transition-colors duration-200"
                   onClick={() => setIsExpanded(true)}
+                  whileHover={{ x: 2 }}
                 >
                   {currentTrack.name}
                 </motion.p>
                 <motion.p 
                   layoutId="track-artist"
-                  className="text-spotify-text text-xs truncate cursor-pointer hover:underline"
+                  className="text-spotify-text text-xs truncate cursor-pointer hover:text-white transition-colors duration-200"
+                  whileHover={{ x: 2 }}
                 >
                   {currentTrack.artist}
                 </motion.p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onLike(currentTrack.id)}
-                className={cn(
-                  'text-spotify-text hover:text-white',
-                  currentTrack.isLiked && 'text-primary'
-                )}
-              >
-                <Heart className={cn('w-4 h-4', currentTrack.isLiked && 'fill-current')} />
-              </Button>
-            </div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onLike(currentTrack.id)}
+                  className={cn(
+                    'text-spotify-text hover:text-white transition-all duration-200',
+                    currentTrack.isLiked && 'text-red-500 hover:text-red-400'
+                  )}
+                >
+                  <Heart className={cn('w-4 h-4 transition-all duration-200', currentTrack.isLiked && 'fill-current')} />
+                </Button>
+              </motion.div>
+            </motion.div>
 
             {/* Controls */}
-            <div className="flex items-center space-x-4 flex-1 justify-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onShuffle}
-                className={cn(
-                  'text-spotify-text hover:text-white hidden md:flex',
-                  isShuffled && 'text-primary'
+            <motion.div 
+              className="flex items-center space-x-4 flex-1 justify-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", damping: 20, stiffness: 300 }}
+            >
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onShuffle}
+                  className={cn(
+                    'w-8 h-8 p-0 text-spotify-text hover:text-white hidden md:flex transition-all duration-200 liquid-glass-hover rounded-lg',
+                    isShuffled && 'text-spotify-green hover:text-spotify-green'
+                  )}
+                >
+                  <Shuffle className="w-4 h-4" />
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onPrevious}
+                  className="w-8 h-8 p-0 text-white hover:text-spotify-green transition-all duration-200 liquid-glass-hover rounded-lg"
+                >
+                  <SkipBack className="w-5 h-5" />
+                </Button>
+              </motion.div>
+
+              <motion.div 
+                whileHover={{ scale: 1.1 }} 
+                whileTap={{ scale: 0.95 }}
+                className="relative"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onPlayPause}
+                  className="w-12 h-12 p-0 rounded-full bg-gradient-to-br from-white to-gray-100 text-black hover:from-spotify-green hover:to-green-400 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-6 h-6" />
+                  ) : (
+                    <Play className="w-6 h-6 ml-0.5" />
+                  )}
+                </Button>
+                {isPlaying && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-2 border-spotify-green"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
                 )}
-              >
-                <Shuffle className="w-4 h-4" />
-              </Button>
+              </motion.div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onPrevious}
-                className="text-white hover:scale-110 transition-transform"
-              >
-                <SkipBack className="w-5 h-5" />
-              </Button>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onNext}
+                  className="w-8 h-8 p-0 text-white hover:text-spotify-green transition-all duration-200 liquid-glass-hover rounded-lg"
+                >
+                  <SkipForward className="w-5 h-5" />
+                </Button>
+              </motion.div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onPlayPause}
-                className="w-8 h-8 rounded-full bg-white text-black hover:scale-110 transition-transform"
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4" />
-                ) : (
-                  <Play className="w-4 h-4 ml-0.5" />
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onNext}
-                className="text-white hover:scale-110 transition-transform"
-              >
-                <SkipForward className="w-5 h-5" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onRepeat}
-                className={cn(
-                  'text-spotify-text hover:text-white hidden md:flex',
-                  repeatMode !== 'off' && 'text-primary'
-                )}
-              >
-                <Repeat className="w-4 h-4" />
-              </Button>
-            </div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRepeat}
+                  className={cn(
+                    'w-8 h-8 p-0 text-spotify-text hover:text-white hidden md:flex transition-all duration-200 liquid-glass-hover rounded-lg',
+                    repeatMode !== 'off' && 'text-spotify-green hover:text-spotify-green'
+                  )}
+                >
+                  <Repeat className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            </motion.div>
 
             {/* Progress & Volume */}
             <div className="flex items-center space-x-4 flex-1 justify-end">

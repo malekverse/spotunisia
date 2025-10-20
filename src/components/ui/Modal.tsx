@@ -14,6 +14,7 @@ export interface ModalProps {
   description?: string
   children: React.ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  variant?: 'default' | 'glass' | 'dark' | 'liquid-glass' | 'liquid-glass-strong'
   showCloseButton?: boolean
   closeOnOverlayClick?: boolean
   className?: string
@@ -34,10 +35,18 @@ export function Modal({
   description,
   children,
   size = 'md',
+  variant = 'default',
   showCloseButton = true,
   closeOnOverlayClick = true,
   className
 }: ModalProps) {
+  const variants = {
+    default: 'bg-spotify-dark-gray border border-spotify-gray/20',
+    glass: 'glass border border-white/10',
+    dark: 'bg-spotify-black border border-spotify-gray/30',
+    'liquid-glass': 'liquid-glass border border-white/10',
+    'liquid-glass-strong': 'liquid-glass-strong border border-white/20',
+  }
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <AnimatePresence>
@@ -63,15 +72,15 @@ export function Modal({
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                 className={cn(
                   'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-                  'bg-spotify-gray rounded-lg border border-spotify-lightgray shadow-2xl',
-                  'w-full max-h-[90vh] overflow-hidden',
+                  'rounded-xl shadow-2xl w-full max-h-[90vh] overflow-hidden',
                   sizeClasses[size],
+                  variants[variant],
                   className
                 )}
               >
                 {/* Header */}
                 {(title || showCloseButton) && (
-                  <div className="flex items-center justify-between p-6 border-b border-spotify-lightgray">
+                  <div className="flex items-center justify-between p-6 border-b border-spotify-gray/20">
                     <div className="flex-1">
                       {title && (
                         <Dialog.Title className="text-xl font-bold text-white">

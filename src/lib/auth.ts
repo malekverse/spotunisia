@@ -3,6 +3,28 @@ import SpotifyProvider from 'next-auth/providers/spotify'
 import connectDB from './mongodb'
 import User from '@/models/User'
 
+interface SpotifyUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  images?: Array<{ url: string; height: number; width: number }>
+}
+
+interface RefreshTokenResponse {
+  access_token: string
+  expires_in: number
+  refresh_token?: string
+}
+
+interface TokenWithSpotify {
+  accessToken?: string
+  refreshToken?: string
+  expiresAt?: number
+  spotifyId?: string
+  error?: string
+}
+
 const scopes = [
   'user-read-email',
   'user-read-private',
@@ -53,7 +75,7 @@ export const authOptions: NextAuthOptions = {
             spotifyId: user.id,
             email: user.email,
             displayName: user.name,
-            images: (user as any).images || [],
+            images: (user as SpotifyUser).images || [],
             accessToken: account.access_token,
             refreshToken: account.refresh_token,
             tokenExpiresAt: new Date(account.expires_at! * 1000),
@@ -91,7 +113,7 @@ export const authOptions: NextAuthOptions = {
   },
 }
 
-async function refreshAccessToken(token: any) {
+async function refreshAccessToken(token: TokenWithSpotify): Promise<TokenWithSpotify> {
   try {
     const url = 'https://accounts.spotify.com/api/token'
     
@@ -104,12 +126,12 @@ async function refreshAccessToken(token: any) {
       },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
-        refresh_token: token.refreshToken,
+        refresh_token: token.refreshToken || '',
       }),
       method: 'POST',
     })
 
-    const refreshedTokens = await response.json()
+    const refreshedTokens: RefreshTokenResponse = await response.json()
 
     if (!response.ok) {
       throw refreshedTokens

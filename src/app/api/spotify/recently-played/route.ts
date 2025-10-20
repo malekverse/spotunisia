@@ -17,16 +17,28 @@ export async function GET(request: NextRequest) {
     const recentlyPlayed = await spotifyService.getRecentlyPlayed(10)
     
     // Transform the data to match our component structure
-    const tracks = recentlyPlayed.items.map((item) => ({
-      id: item.track.id,
-      name: item.track.name,
-      artist: item.track.artists.map(artist => artist.name).join(', '),
-      album: item.track.album.name,
-      duration: Math.floor(item.track.duration_ms / 1000),
-      image: item.track.album.images?.[0]?.url || '/placeholder-album.svg',
-      isPlaying: false,
-      isLiked: false, // We'll need to check this separately if needed
-    }))
+    // Use a Map to deduplicate tracks by track ID, keeping the most recent play
+    const trackMap = new Map()
+    
+    recentlyPlayed.items.forEach((item, index) => {
+      const trackId = item.track.id
+      if (!trackMap.has(trackId)) {
+        trackMap.set(trackId, {
+          id: trackId,
+          uniqueKey: `${trackId}-${item.played_at || index}`, // Unique key for React
+          name: item.track.name,
+          artist: item.track.artists.map(artist => artist.name).join(', '),
+          album: item.track.album.name,
+          duration: Math.floor(item.track.duration_ms / 1000),
+          image: item.track.album.images?.[0]?.url || '/placeholder-album.svg',
+          isPlaying: false,
+          isLiked: false, // We'll need to check this separately if needed
+          playedAt: item.played_at,
+        })
+      }
+    })
+    
+    const tracks = Array.from(trackMap.values())
 
     return NextResponse.json(tracks)
   } catch (error) {

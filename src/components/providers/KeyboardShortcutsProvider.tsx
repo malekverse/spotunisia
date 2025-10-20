@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { useKeyboardShortcuts, useNavigationShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { KeyboardShortcutsDialog, useKeyboardShortcutsDialog } from '@/components/ui/KeyboardShortcuts';
+import { useKeyboardShortcutsDialog } from '@/components/ui/KeyboardShortcuts';
 
 interface KeyboardShortcutsContextType {
   openShortcutsDialog: () => void;

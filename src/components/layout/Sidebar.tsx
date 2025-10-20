@@ -13,7 +13,6 @@ import {
   Plus,
   Music,
   Mic2,
-  Radio,
   TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -68,95 +67,156 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
 
   return (
-    <div className={cn('flex flex-col h-full bg-spotify-black text-white', className)}>
+    <div className={cn('flex flex-col h-full liquid-glass border-r border-white/10 text-white', className)}>
       {/* Logo */}
-      <div className="p-6">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <Mic2 className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold">Spotify Clone</span>
+      <motion.div 
+        className="p-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Link href="/" className="flex items-center space-x-3 group">
+          <motion.div 
+            className="w-10 h-10 bg-gradient-to-br from-spotify-green to-green-400 rounded-xl flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Mic2 className="w-6 h-6 text-white" />
+          </motion.div>
+          <span className="text-xl font-bold bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent group-hover:from-spotify-green group-hover:to-white transition-all duration-300">
+            Spotify Clone
+          </span>
         </Link>
-      </div>
+      </motion.div>
 
       {/* Main Navigation */}
-      <nav className="px-3 space-y-1">
-        {sidebarItems.map((item) => {
+      <motion.nav 
+        className="px-3 space-y-2"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        {sidebarItems.map((item, index) => {
           const isActive = pathname === item.href
           return (
             <motion.div
               key={item.href}
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              whileHover={{ scale: 1.02, x: 4 }}
               whileTap={{ scale: 0.98 }}
             >
               <Link
                 href={item.href}
                 className={cn(
-                  'flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200',
+                  'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden',
                   isActive
-                    ? 'bg-spotify-gray text-white'
-                    : 'text-spotify-text hover:text-white hover:bg-spotify-lightgray'
+                    ? 'liquid-glass-strong text-white shadow-lg border border-white/20'
+              : 'text-spotify-text hover:text-white liquid-glass-hover hover:border hover:border-white/10'
                 )}
               >
-                <item.icon className="w-5 h-5" />
-                <span>{item.title}</span>
+                <item.icon className={cn(
+                  "w-5 h-5 transition-all duration-300",
+                  isActive ? "text-spotify-green" : "group-hover:text-spotify-green"
+                )} />
+                <span className="relative z-10">{item.title}</span>
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-spotify-green/20 to-transparent rounded-xl"
+                    layoutId="activeNavItem"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
               </Link>
             </motion.div>
           )
         })}
-      </nav>
+      </motion.nav>
 
       {/* Create Playlist Button */}
-      <div className="px-6 py-4">
+      <motion.div 
+        className="px-6 py-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         <Button
-          variant="ghost"
-          className="w-full justify-start text-spotify-text hover:text-white hover:bg-spotify-lightgray"
+          variant="default"
+          className="liquid-glass-hover w-full justify-start text-white hover:text-spotify-green border border-white/10 hover:border-spotify-green/50"
         >
+          <div className='flex justify-start '>
           <Plus className="w-5 h-5 mr-3" />
           Create Playlist
+          </div>
         </Button>
-      </div>
+      </motion.div>
 
       {/* Library Section */}
-      <div className="flex-1 px-3 space-y-1">
-        <div className="px-3 py-2 text-xs font-semibold text-spotify-text uppercase tracking-wider">
+      <motion.div 
+        className="flex-1 px-3 space-y-2"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <div className="px-4 py-3 text-xs font-semibold text-spotify-text uppercase tracking-wider border-b border-white/10">
           Your Library
         </div>
-        {libraryItems.map((item) => {
+        {libraryItems.map((item, index) => {
           const isActive = pathname === item.href
           return (
             <motion.div
               key={item.href}
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+              whileHover={{ scale: 1.02, x: 4 }}
               whileTap={{ scale: 0.98 }}
             >
               <Link
                 href={item.href}
                 className={cn(
-                  'flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200',
+                  'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden',
                   isActive
-                    ? 'bg-spotify-gray text-white'
-                    : 'text-spotify-text hover:text-white hover:bg-spotify-lightgray'
+                    ? 'liquid-glass-strong text-white shadow-lg border border-white/20'
+                : 'text-spotify-text hover:text-white liquid-glass-hover hover:border hover:border-white/10'
                 )}
               >
-                <item.icon className="w-5 h-5" />
-                <span>{item.title}</span>
+                <item.icon className={cn(
+                  "w-5 h-5 transition-all duration-300",
+                  isActive ? "text-spotify-green" : "group-hover:text-spotify-green"
+                )} />
+                <span className="relative z-10">{item.title}</span>
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-spotify-green/20 to-transparent rounded-xl"
+                    layoutId="activeLibraryItem"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
               </Link>
             </motion.div>
           )
         })}
-      </div>
+      </motion.div>
 
       {/* Install App */}
-      <div className="p-6 border-t border-spotify-gray">
+      <motion.div 
+        className="p-6 border-t border-white/10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+      >
         <Button
-          variant="ghost"
-          className="w-full justify-start text-spotify-text hover:text-white"
-        >
-          <Download className="w-5 h-5 mr-3" />
-          Install App
+          variant="gradient"
+          className="w-full justify-start text-white shadow-lg hover:shadow-xl"
+          >
+          <div className='flex'>
+            <Download className="w-5 h-5 mr-3" />
+            <p>Install App</p>
+          </div>
         </Button>
-      </div>
+      </motion.div>
     </div>
   )
 }

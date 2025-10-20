@@ -67,7 +67,7 @@ export function PlaylistImage({ src, alt, className }: PlaylistImageProps) {
       src={src}
       alt={alt}
       fallbackSrc="/placeholder-playlist.svg"
-      className={cn('w-full aspect-square rounded-md', className)}
+      className={cn('w-full h-full aspect-square rounded-md object-cover', className)}
     />
   )
 }
@@ -80,9 +80,9 @@ interface AlbumImageProps {
 }
 
 const sizeClasses = {
-  sm: 'w-10 h-10',
-  md: 'w-16 h-16',
-  lg: 'w-full aspect-square'
+  sm: 'w-full h-full',
+  md: 'w-full h-full',
+  lg: 'w-full h-full aspect-square'
 }
 
 export function AlbumImage({ src, alt, className, size = 'lg' }: AlbumImageProps) {
@@ -91,7 +91,7 @@ export function AlbumImage({ src, alt, className, size = 'lg' }: AlbumImageProps
       src={src}
       alt={alt}
       fallbackSrc="/placeholder-album.svg"
-      className={cn('rounded', sizeClasses[size], className)}
+      className={cn('rounded-xl object-cover', sizeClasses[size], className)}
     />
   )
 }

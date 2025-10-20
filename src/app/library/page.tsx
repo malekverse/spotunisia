@@ -157,7 +157,7 @@ export default function LibraryPage() {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
     }
-  }, [status, router])
+  }, [status])
 
   // Show loading while checking authentication
   if (status === 'loading') {

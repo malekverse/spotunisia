@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PlaylistCard } from '@/components/ui/PlaylistCard'
 import { TrackCard } from '@/components/ui/TrackCard'
-import { Loading } from '@/components/ui/Loading'
+import { Loading, HomepageSkeleton } from '@/components/ui/Loading';
 import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -24,6 +24,7 @@ interface Playlist {
 
 interface Track {
   id: string
+  uniqueKey?: string
   name: string
   artist: string
   album: string
@@ -192,7 +193,7 @@ export default function Home() {
 
     // Fetch real Spotify data
     fetchSpotifyData()
-  }, [session, status, router])
+  }, [session, status])
 
   const fetchSpotifyData = async () => {
     try {
@@ -242,11 +243,7 @@ export default function Home() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-spotify-black">
-        <Loading variant="music" size="lg" />
-      </div>
-    )
+    return <HomepageSkeleton />;
   }
 
   // Redirect to sign-in if not authenticated
@@ -280,27 +277,31 @@ export default function Home() {
   return (
     <AppLayout>
       <div className="space-y-8">
-        {/* Greeting */}
+        {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {getGreeting()}
-          </h1>
-          <p className="text-spotify-text">
-            Let's find something amazing to listen to
-          </p>
+          <div className="liquid-glass-strong rounded-2xl p-8 mb-6 border border-white/10">
+            <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
+              Good {getGreeting().split(' ')[1]}, {session?.user?.name || 'there'}!
+            </h1>
+            <p className="text-spotify-text text-lg">
+              Discover your next favorite song
+            </p>
+          </div>
           {error && (
-            <div className="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-md">
+            <div className="liquid-glass-strong border border-red-500/30 rounded-xl p-4 mb-4 animate-fade-in">
               <p className="text-red-400 text-sm">{error}</p>
-              <button 
+              <Button
                 onClick={fetchSpotifyData}
-                className="mt-2 text-xs text-primary hover:underline"
+                variant="outline"
+                size="sm"
+                className="mt-3"
               >
                 Try again
-              </button>
+              </Button>
             </div>
           )}
         </motion.div>
@@ -318,22 +319,23 @@ export default function Home() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-spotify-lightgray rounded-md p-3 flex items-center space-x-3 hover:bg-spotify-gray transition-colors cursor-pointer group"
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="liquid-glass-hover rounded-xl p-4 flex items-center space-x-4 transition-all duration-300 cursor-pointer group border border-white/10"
               onClick={() => handlePlayPlaylist(playlist.id)}
             >
-              <div className="w-12 h-12 flex-shrink-0">
+              <div className="w-14 h-14 flex-shrink-0">
                 <PlaylistImage
                   src={playlist.image}
                   alt={playlist.name}
-                  className="w-full h-full rounded"
+                  className="w-full h-full rounded-lg shadow-lg"
                 />
               </div>
-              <span className="font-medium text-white truncate">
+              <span className="font-semibold text-white truncate text-sm">
                 {playlist.name}
               </span>
-              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-110">
+                <div className="w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center shadow-lg hover-glow">
+                  <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z"/>
                   </svg>
                 </div>
@@ -347,12 +349,15 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="liquid-glass rounded-2xl p-6 border border-white/10"
         >
-          <h2 className="text-2xl font-bold text-white mb-4">Recently played</h2>
+          <h2 className="text-3xl font-bold text-white mb-6 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
+            Recently played
+          </h2>
           <div className="space-y-1">
             {recentlyPlayed.map((track, index) => (
               <TrackCard
-                key={track.id}
+                key={track.uniqueKey || track.id}
                 track={track}
                 index={index + 1}
                 onPlay={handlePlayTrack}
@@ -369,8 +374,11 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="liquid-glass rounded-2xl p-6 border border-white/10"
         >
-          <h2 className="text-2xl font-bold text-white mb-4">Made for you</h2>
+          <h2 className="text-3xl font-bold text-white mb-6 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
+            Made for you
+          </h2>
           <div className="space-y-1">
             {madeForYou.map((track, index) => (
               <TrackCard
@@ -391,8 +399,11 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="liquid-glass rounded-2xl p-6 border border-white/10"
         >
-          <h2 className="text-2xl font-bold text-white mb-4">Popular playlists</h2>
+          <h2 className="text-3xl font-bold text-white mb-6 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
+            Popular playlists
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {featuredPlaylists.map((playlist) => (
               <PlaylistCard
