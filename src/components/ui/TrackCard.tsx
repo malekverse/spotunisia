@@ -284,7 +284,6 @@ export function TrackCard({
           className="hidden md:block w-32 mx-4"
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
           whileHover={{
             scale: 1.05,
             rotateY: 2,
@@ -292,6 +291,7 @@ export function TrackCard({
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)",
           }}
           transition={{
+            delay: 0.4,
             type: "spring",
             damping: 25,
             stiffness: 400,

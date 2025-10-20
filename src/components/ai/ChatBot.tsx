@@ -270,7 +270,6 @@ const ChatBot = ({ currentTrack }: ChatBotProps) => {
                    backgroundColor: "rgba(255, 255, 255, 0.15)"
                  }}
                  whileTap={{ scale: 0.9, rotate: 180 }}
-                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                  style={{
                    boxShadow: '0 0 0 0 rgba(255, 255, 255, 0.2)'
                  }}
@@ -281,7 +280,13 @@ const ChatBot = ({ currentTrack }: ChatBotProps) => {
                      '0 0 0 0 rgba(255, 255, 255, 0.2)'
                    ]
                  }}
-                 transition={{ duration: 2, repeat: Infinity, type: "tween" }}
+                 transition={{ 
+                   type: "spring", 
+                   stiffness: 400, 
+                   damping: 25,
+                   duration: 2, 
+                   repeat: Infinity 
+                 }}
                >
                  <motion.div
                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"
