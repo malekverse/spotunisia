@@ -16,7 +16,7 @@
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-context-menu": "^2.2.16",
-    "@radix-ui/react-popover": "^1.1.16",
+    "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-progress": "^1.1.6",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "@tanstack/react-virtual": "^3.10.8",
