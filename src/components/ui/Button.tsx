@@ -1,13 +1,13 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   variant?: 'default' | 'primary' | 'secondary' | 'ghost' | 'destructive' | 'glass' | 'liquid-glass' | 'gradient' | 'outline'
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  children: React.ReactNode
+  children?: React.ReactNode
   loading?: boolean
   icon?: React.ReactNode
   iconPosition?: 'left' | 'right'

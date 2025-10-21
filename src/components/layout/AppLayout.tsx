@@ -101,16 +101,7 @@ export function AppLayout({
     }
   }
 
-  const handlePlayTrack = (trackId: string) => {
-    // Implement play specific track logic
-    console.log('Playing track:', trackId)
-    setIsPlaying(true)
-  }
 
-  const handleLikeTrack = (trackId: string) => {
-    // Implement like track logic
-    console.log('Liking track:', trackId)
-  }
 
 
 

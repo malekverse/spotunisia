@@ -170,7 +170,7 @@ export function ConfirmationModal({
             {cancelText}
           </Button>
           <Button
-            variant={variant === 'destructive' ? 'destructive' : 'spotify'}
+            variant={variant === 'destructive' ? 'destructive' : 'primary'}
             onClick={handleConfirm}
             disabled={isLoading}
           >

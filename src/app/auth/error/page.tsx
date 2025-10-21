@@ -1,15 +1,31 @@
 'use client'
 
 import React from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+// Removed useSearchParams and useRouter to prevent SSR issues
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { AlertCircle, Home, RefreshCw } from 'lucide-react'
 
+
+
 export default function AuthError() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const error = searchParams.get('error')
+  const [isClient, setIsClient] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    setIsClient(true)
+    // Get error from URL on client side only
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      setError(urlParams.get('error'))
+    }
+  }, [])
+
+  const handleNavigation = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = path
+    }
+  }
 
   const getErrorMessage = (error: string | null) => {
     switch (error) {
@@ -35,6 +51,15 @@ export default function AuthError() {
       default:
         return 'Authentication Error'
     }
+  }
+
+  // Show loading while client is hydrating
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-spotify-black via-spotify-gray to-red-900/20">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -83,7 +108,7 @@ export default function AuthError() {
             className="space-y-3"
           >
             <Button
-              onClick={() => router.push('/auth/signin')}
+              onClick={() => handleNavigation('/auth/signin')}
               className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-full"
               size="lg"
             >
@@ -92,7 +117,7 @@ export default function AuthError() {
             </Button>
             
             <Button
-              onClick={() => router.push('/')}
+              onClick={() => handleNavigation('/')}
               variant="ghost"
               className="w-full text-spotify-text hover:text-white"
               size="lg"

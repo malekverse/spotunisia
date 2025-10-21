@@ -1,4 +1,3 @@
-import { NextAuthOptions } from 'next-auth'
 import SpotifyProvider from 'next-auth/providers/spotify'
 import connectDB from './mongodb'
 import User from '@/models/User'
@@ -44,7 +43,7 @@ const scopes = [
   'streaming'
 ].join(' ')
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
@@ -57,7 +56,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, account, user }: { token: any; account: any; user: any }) {
       if (account && user) {
         // Initial sign in
         token.accessToken = account.access_token
@@ -98,7 +98,8 @@ export const authOptions: NextAuthOptions = {
       // Access token has expired, try to update it
       return await refreshAccessToken(token)
     },
-    async session({ session, token }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async session({ session, token }: { session: any; token: any }) {
       session.accessToken = token.accessToken as string
       session.user.id = token.spotifyId as string
       return session
@@ -109,7 +110,7 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
   },
 }
 

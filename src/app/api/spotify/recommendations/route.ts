@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
+import type { Session } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SpotifyService } from '@/lib/spotify'
 
+interface SpotifyTrack {
+  id: string
+  name: string
+  artists: Array<{ name: string }>
+  album: { 
+    name: string
+    images?: Array<{ url: string }>
+  }
+  duration_ms: number
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions) as Session & { accessToken?: string }
     
     if (!session?.accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -61,15 +73,15 @@ export async function GET(request: NextRequest) {
     }
     
     // Get recommendations with our seed values
-    const recommendations = await spotifyService.getRecommendations(
-      seedTracks,
-      seedArtists,
-      seedGenres,
-      10
-    )
+    const recommendations = await spotifyService.getRecommendations({
+      seed_tracks: seedTracks,
+      seed_artists: seedArtists,
+      seed_genres: seedGenres,
+      limit: 10
+    })
     
     // Transform the data to match our component structure
-    const recommendedTracks = recommendations.tracks.map((track) => ({
+    const recommendedTracks = recommendations.tracks.map((track: SpotifyTrack) => ({
       id: track.id,
       name: track.name,
       artist: track.artists.map(artist => artist.name).join(', '),

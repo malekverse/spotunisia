@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
+import type { Session } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SpotifyService } from '@/lib/spotify'
 
+interface PlaylistWithTracks {
+  id: string
+  name: string
+  description?: string
+  images?: Array<{ url: string }>
+  owner?: { display_name?: string }
+  tracks?: { total: number }
+  uri: string
+  external_urls: { spotify: string }
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions) as Session & { accessToken?: string }
     
     if (!session?.accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -55,13 +67,13 @@ export async function GET(request: NextRequest) {
         name: album.name,
         artist: album.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist',
         image: album.images?.[0]?.url || '/placeholder-album.svg',
-        release_date: album.release_date,
-        total_tracks: album.total_tracks || 0,
+        releaseDate: album.release_date,
+        trackCount: album.total_tracks || 0,
         uri: album.uri,
         external_urls: album.external_urls,
       })) || [],
       
-      playlists: searchResults.playlists?.items?.filter(playlist => playlist && playlist.id)?.map((playlist) => ({
+      playlists: searchResults.playlists?.items?.filter(playlist => playlist && playlist.id)?.map((playlist: PlaylistWithTracks) => ({
         id: playlist.id,
         name: playlist.name,
         description: playlist.description || 'No description available',

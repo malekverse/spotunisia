@@ -30,7 +30,7 @@ export class SpotifyService {
   // User's Library
   async getUserPlaylists(limit = 50, offset = 0) {
     try {
-      return await this.api.currentUser.playlists.playlists(limit, offset)
+      return await this.api.currentUser.playlists.playlists(limit as 50, offset)
     } catch (error) {
       console.error('Error fetching user playlists:', error)
       throw error
@@ -39,7 +39,7 @@ export class SpotifyService {
 
   async getUserSavedTracks(limit = 50, offset = 0) {
     try {
-      return await this.api.currentUser.tracks.savedTracks(limit, offset)
+      return await this.api.currentUser.tracks.savedTracks(limit as 50, offset)
     } catch (error) {
       console.error('Error fetching saved tracks:', error)
       throw error
@@ -48,7 +48,7 @@ export class SpotifyService {
 
   async getUserSavedAlbums(limit = 50, offset = 0) {
     try {
-      return await this.api.currentUser.albums.savedAlbums(limit, offset)
+      return await this.api.currentUser.albums.savedAlbums(limit as 50, offset)
     } catch (error) {
       console.error('Error fetching saved albums:', error)
       throw error
@@ -57,7 +57,7 @@ export class SpotifyService {
 
   async getFollowedArtists(limit = 50) {
     try {
-      return await this.api.currentUser.followedArtists(limit)
+      return await this.api.currentUser.followedArtists(limit.toString())
     } catch (error) {
       console.error('Error fetching followed artists:', error)
       throw error
@@ -66,7 +66,7 @@ export class SpotifyService {
 
   async getUserTopTracks(limit = 20, offset = 0, timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term') {
     try {
-      return await this.api.currentUser.topItems('tracks', timeRange, limit, offset)
+      return await this.api.currentUser.topItems('tracks', timeRange, limit as 20, offset)
     } catch (error) {
       console.error('Error fetching user top tracks:', error)
       throw error
@@ -75,7 +75,7 @@ export class SpotifyService {
 
   async getUserTopArtists(limit = 20, offset = 0, timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term') {
     try {
-      return await this.api.currentUser.topItems('artists', timeRange, limit, offset)
+      return await this.api.currentUser.topItems('artists', timeRange, limit as 20, offset)
     } catch (error) {
       console.error('Error fetching user top artists:', error)
       throw error
@@ -94,43 +94,43 @@ export class SpotifyService {
 
   async getRecentlyPlayed(limit = 50) {
     try {
-      return await this.api.player.getRecentlyPlayedTracks(limit)
+      return await this.api.player.getRecentlyPlayedTracks(limit as 50)
     } catch (error) {
       console.error('Error fetching recently played:', error)
       throw error
     }
   }
 
-  async pausePlayback() {
+  async pausePlayback(deviceId?: string) {
     try {
-      await this.api.player.pausePlayback()
+      await this.api.player.pausePlayback(deviceId || '')
     } catch (error) {
       console.error('Error pausing playback:', error)
       throw error
     }
   }
 
-  async resumePlayback() {
+  async resumePlayback(deviceId?: string) {
     try {
-      await this.api.player.startResumePlayback()
+      await this.api.player.startResumePlayback(deviceId || '', undefined, undefined, undefined)
     } catch (error) {
       console.error('Error resuming playback:', error)
       throw error
     }
   }
 
-  async skipToNext() {
+  async skipToNext(deviceId?: string) {
     try {
-      await this.api.player.skipToNext()
+      await this.api.player.skipToNext(deviceId || '')
     } catch (error) {
       console.error('Error skipping to next:', error)
       throw error
     }
   }
 
-  async skipToPrevious() {
+  async skipToPrevious(deviceId?: string) {
     try {
-      await this.api.player.skipToPrevious()
+      await this.api.player.skipToPrevious(deviceId || '')
     } catch (error) {
       console.error('Error skipping to previous:', error)
       throw error
@@ -158,7 +158,7 @@ export class SpotifyService {
   // Search
   async search(query: string, types: string[] = ['track', 'artist', 'album', 'playlist'], limit = 20) {
     try {
-      return await this.api.search(query, types, 'US', limit)
+      return await this.api.search(query, types as ('track' | 'artist' | 'album' | 'playlist')[], 'US', 20)
     } catch (error) {
       console.error('Error searching:', error)
       throw error
@@ -196,7 +196,7 @@ export class SpotifyService {
 
   async getAlbumTracks(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.albums.tracks(id, 'US', limit, offset)
+      return await this.api.albums.tracks(id, 'US', limit as 50, offset)
     } catch (error) {
       console.error('Error fetching album tracks:', error)
       throw error
@@ -224,7 +224,7 @@ export class SpotifyService {
 
   async getArtistAlbums(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.artists.albums(id, 'album,single', 'US', limit, offset)
+      return await this.api.artists.albums(id, 'album,single', 'US', limit as 50, offset)
     } catch (error) {
       console.error('Error fetching artist albums:', error)
       throw error
@@ -243,7 +243,7 @@ export class SpotifyService {
 
   async getPlaylistTracks(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.playlists.getPlaylistItems(id, 'US', undefined, limit, offset)
+      return await this.api.playlists.getPlaylistItems(id, 'US', undefined, limit as 50, offset)
     } catch (error) {
       console.error('Error fetching playlist tracks:', error)
       throw error
@@ -426,7 +426,7 @@ export class SpotifyService {
 
   async removeTrack(id: string) {
     try {
-      await this.api.currentUser.tracks.removeTracks([id])
+      await this.api.currentUser.tracks.removeSavedTracks([id])
     } catch (error) {
       console.error('Error removing track:', error)
       throw error
@@ -458,11 +458,7 @@ export class SpotifyService {
       const validLimit = Math.max(1, Math.min(50, limit))
       const validOffset = Math.max(0, offset)
       
-      return await this.api.browse.getCategories({
-        limit: validLimit,
-        offset: validOffset,
-        locale: 'en_US'
-      })
+      return await this.api.browse.getCategories('US', '20', 0)
     } catch (error) {
       console.error('Error fetching browse categories:', error)
       throw error

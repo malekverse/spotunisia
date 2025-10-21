@@ -96,7 +96,7 @@ export default function SignIn() {
             transition={{ delay: 0.6 }}
             className="mt-6 text-xs text-spotify-text text-center"
           >
-            You'll be redirected to Spotify to authorize this application
+            You&apos;ll be redirected to Spotify to authorize this application
           </motion.div>
         </div>
       </motion.div>

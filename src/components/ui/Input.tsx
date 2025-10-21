@@ -1,10 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<HTMLMotionProps<"input">, 'size'> {
   variant?: 'default' | 'glass' | 'outlined' | 'filled' | 'liquid-glass' | 'liquid-glass-strong'
   size?: 'sm' | 'md' | 'lg'
   icon?: React.ReactNode

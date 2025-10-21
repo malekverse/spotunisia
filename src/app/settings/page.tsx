@@ -4,20 +4,16 @@ import React, { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { 
-  User, 
-  Bell, 
-  Volume2, 
-  Download, 
-  Shield, 
-  Palette, 
-  Globe, 
+import {
+  User,
+  Bell,
+  Shield,
+  Palette,
+  Download,
+  Volume2,
   HelpCircle,
   ChevronRight,
-  Check,
-  Moon,
-  Sun,
-  Monitor
+  Check
 } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
@@ -37,36 +33,16 @@ interface SettingItem {
   label: string
   description?: string
   type: 'toggle' | 'select' | 'range' | 'button'
-  value?: any
-  options?: { label: string; value: any }[]
+  value?: string | number | boolean
+  options?: { label: string; value: string | number | boolean }[]
   min?: number
   max?: number
   step?: number
 }
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    }
-  }, [status])
-
-  // Show loading while checking authentication
-  if (status === 'loading') {
-    return (
-      <div className="h-screen flex items-center justify-center bg-spotify-black">
-        <Loading variant="music" size="lg" />
-      </div>
-    )
-  }
-
-  // Redirect to sign-in if not authenticated
-  if (status === 'unauthenticated') {
-    return null
-  }
 
   const [settings, setSettings] = useState({
     // Account settings
@@ -105,7 +81,27 @@ export default function SettingsPage() {
     screenReader: false
   })
 
-  const updateSetting = (key: string, value: any) => {
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="h-screen flex items-center justify-center bg-spotify-black">
+        <Loading variant="music" size="lg" />
+      </div>
+    )
+  }
+
+  // Redirect to sign-in if not authenticated
+  if (status === 'unauthenticated') {
+    return null
+  }
+
+  const updateSetting = (key: string, value: string | number | boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }))
   }
 
@@ -301,7 +297,7 @@ export default function SettingsPage() {
     }
   ]
 
-  const renderSettingItem = (item: SettingItem, sectionId: string) => {
+  const renderSettingItem = (item: SettingItem) => {
     switch (item.type) {
       case 'toggle':
         return (
@@ -341,7 +337,7 @@ export default function SettingsPage() {
             <div className="space-y-2">
               {item.options?.map((option) => (
                 <Button
-                  key={option.value}
+                  key={String(option.value)}
                   variant="ghost"
                   onClick={() => updateSetting(item.id, option.value)}
                   className={cn(
@@ -369,7 +365,7 @@ export default function SettingsPage() {
               min={item.min}
               max={item.max}
               step={item.step}
-              value={item.value}
+              value={Number(item.value)}
               onChange={(e) => updateSetting(item.id, parseInt(e.target.value))}
               className="w-full h-2 bg-spotify-gray rounded-lg appearance-none cursor-pointer slider"
             />
@@ -414,7 +410,7 @@ export default function SettingsPage() {
                       transition={{ delay: (sectionIndex * 0.1) + (itemIndex * 0.05) }}
                       className="pb-6 border-b border-spotify-gray last:border-b-0 last:pb-0"
                     >
-                      {renderSettingItem(item, section.id)}
+                      {renderSettingItem(item)}
                     </motion.div>
                   ))}
                 </div>

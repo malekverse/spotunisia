@@ -1,25 +1,63 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Search as SearchIcon, Clock, TrendingUp } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Input } from '@/components/ui/Input'
-import { Card } from '@/components/ui/Card'
 import { TrackCard } from '@/components/ui/TrackCard'
 import { PlaylistCard } from '@/components/ui/PlaylistCard'
-import { Button } from '@/components/ui/Button'
 import { Loading } from '@/components/ui/Loading'
 import { cn } from '@/lib/utils'
 
 // Types for search results
+interface Artist {
+  id: string
+  name: string
+  image: string
+  followers: number
+  genres: string[]
+}
+
+interface Album {
+  id: string
+  name: string
+  artist: string
+  image: string
+  releaseDate: string
+  trackCount: number
+}
+
+interface Track {
+  id: string
+  name: string
+  artist: string
+  album: string
+  image: string
+  duration: number
+  preview_url?: string
+  isLiked?: boolean
+  isDownloaded?: boolean
+}
+
+interface Playlist {
+  id: string
+  name: string
+  description?: string
+  image: string
+  owner: string
+  trackCount: number
+  isPlaying?: boolean
+}
+
 interface SearchResults {
-  tracks: any[]
-  artists: any[]
-  albums: any[]
-  playlists: any[]
+  tracks: Track[]
+  artists: Artist[]
+  albums: Album[]
+  playlists: Playlist[]
 }
 
 interface BrowseCategory {
@@ -68,14 +106,15 @@ export default function SearchPage() {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
     }
-  }, [status])
+  }, [status, router])
 
   useEffect(() => {
     // Load recent searches from localStorage
     setRecentSearches(getRecentSearches())
     
     // Load browse categories when component mounts
-    if (session?.accessToken) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((session as any)?.accessToken) {
       fetchBrowseCategories()
     }
   }, [session])
@@ -249,8 +288,7 @@ export default function SearchPage() {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.5,
-        ease: "easeOut"
+        duration: 0.5
       }
     }
   }
@@ -415,9 +453,11 @@ export default function SearchPage() {
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <img
+                        <Image
                           src={filteredResults.tracks[0].image}
                           alt={filteredResults.tracks[0].name}
+                          width={96}
+                          height={96}
                           className="w-24 h-24 rounded-xl shadow-lg"
                         />
                         <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
@@ -459,14 +499,13 @@ export default function SearchPage() {
                   <div>
                     <h3 className="text-xl font-bold text-white mb-4">Songs</h3>
                     <div className="space-y-1">
-                      {filteredResults.tracks.slice(0, 4).map((track: any, index: number) => (
+                      {filteredResults.tracks.slice(0, 4).map((track: Track, index: number) => (
                         <TrackCard
                           key={track.id}
                           track={track}
                           index={index + 1}
                           onPlay={handlePlayTrack}
                           onLike={handleLikeTrack}
-                          onDownload={handleDownloadTrack}
                           showIndex={false}
                           compact={true}
                         />
@@ -484,14 +523,13 @@ export default function SearchPage() {
                   Songs {activeFilter === 'tracks' && `(${filteredResults.tracks.length})`}
                 </h2>
                 <div className="space-y-1">
-                  {filteredResults.tracks.map((track: any, index: number) => (
+                  {filteredResults.tracks.map((track: Track, index: number) => (
                     <TrackCard
                       key={track.id}
                       track={track}
                       index={index + 1}
                       onPlay={handlePlayTrack}
                       onLike={handleLikeTrack}
-                      onDownload={handleDownloadTrack}
                       showIndex={true}
                     />
                   ))}
@@ -515,7 +553,7 @@ export default function SearchPage() {
                   Artists {activeFilter === 'artists' && `(${filteredResults.artists.length})`}
                 </motion.h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-                  {filteredResults.artists.map((artist: any, index: number) => (
+                  {filteredResults.artists.map((artist: Artist, index: number) => (
                     <motion.div 
                       key={artist.id} 
                       className="liquid-glass-morphing p-6 rounded-2xl cursor-pointer group border border-white/10 shadow-xl"
@@ -534,9 +572,11 @@ export default function SearchPage() {
                           whileHover={{ scale: 1.1 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <img
+                          <Image
                             src={artist.image}
                             alt={artist.name}
+                            width={200}
+                            height={200}
                             className="w-full aspect-square rounded-full object-cover shadow-lg"
                           />
                           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-full" />
@@ -590,7 +630,7 @@ export default function SearchPage() {
                   Albums {activeFilter === 'albums' && `(${filteredResults.albums.length})`}
                 </motion.h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {filteredResults.albums.map((album: any, index: number) => (
+                  {filteredResults.albums.map((album: Album, index: number) => (
                     <motion.div 
                       key={album.id} 
                       className="liquid-glass-morphing p-5 rounded-2xl cursor-pointer group border border-white/10 shadow-xl"
@@ -609,9 +649,11 @@ export default function SearchPage() {
                           whileHover={{ scale: 1.05 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <img
+                          <Image
                             src={album.image}
                             alt={album.name}
+                            width={200}
+                            height={200}
                             className="w-full aspect-square rounded-xl object-cover shadow-lg"
                           />
                           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
@@ -638,7 +680,7 @@ export default function SearchPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
                         >
-                          {new Date(album.release_date).getFullYear()} • {album.total_tracks} tracks
+                          {new Date(album.releaseDate).getFullYear()} • {album.trackCount} tracks
                         </motion.p>
                         <motion.div 
                           className="opacity-0 group-hover:opacity-100 transition-all duration-300"
@@ -664,7 +706,7 @@ export default function SearchPage() {
                   Playlists {activeFilter === 'playlists' && `(${filteredResults.playlists.length})`}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {filteredResults.playlists.map((playlist: any) => (
+                  {filteredResults.playlists.map((playlist: Playlist) => (
                     <PlaylistCard
                       key={playlist.id}
                       playlist={playlist}
@@ -852,9 +894,11 @@ export default function SearchPage() {
                             transition: { duration: 0.2 }
                           }}
                         >
-                          <img
+                          <Image
                             src={category.image}
                             alt={category.name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded shadow-lg"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement

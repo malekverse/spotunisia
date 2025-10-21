@@ -259,7 +259,7 @@ export function TopBar({
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                variant="spotify"
+                variant="default"
                 size="sm"
                 onClick={handleSignIn}
                 className="px-6 py-2 rounded-full font-semibold bg-spotify-green hover:bg-spotify-green/90 text-black shadow-lg hover:shadow-xl transition-all duration-300 border border-spotify-green/50"

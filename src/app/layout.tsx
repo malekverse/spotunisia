@@ -4,6 +4,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
+// Force dynamic rendering to prevent prerendering issues
+export const dynamic = 'force-dynamic'
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",

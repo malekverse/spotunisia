@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Pause } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PlaylistCard } from '@/components/ui/PlaylistCard'
 import { TrackCard } from '@/components/ui/TrackCard'
-import { Loading, HomepageSkeleton } from '@/components/ui/Loading';
+import { HomepageSkeleton } from '@/components/ui/Loading';
 import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+
+
 
 // Types for our data
 interface Playlist {
@@ -34,143 +35,7 @@ interface Track {
   isLiked: boolean
 }
 
-// Mock data for demo
-const featuredPlaylists: Playlist[] = [
-  {
-    id: '1',
-    name: 'Today\'s Top Hits',
-    description: 'The most played songs right now',
-    image: '/placeholder-playlist.svg',
-    owner: 'Spotify',
-    trackCount: 50,
-  },
-  {
-    id: '2',
-    name: 'RapCaviar',
-    description: 'New music from Drake, Travis Scott, and more',
-    image: '/placeholder-playlist.svg',
-    owner: 'Spotify',
-    trackCount: 65,
-  },
-  {
-    id: '3',
-    name: 'Rock Classics',
-    description: 'Rock legends & epic songs',
-    image: '/placeholder-playlist.svg',
-    owner: 'Spotify',
-    trackCount: 100,
-  },
-  {
-    id: '4',
-    name: 'Chill Hits',
-    description: 'Kick back to the best new and recent chill hits',
-    image: 'https://i.scdn.co/image/ab67706f00000002ca5a7517156021292e5663a6',
-    owner: 'Spotify',
-    trackCount: 75,
-  },
-  {
-    id: '5',
-    name: 'Pop Rising',
-    description: 'The biggest songs in pop right now',
-    image: 'https://i.scdn.co/image/ab67706f00000002fe24d7084be472288cd6ee6c',
-    owner: 'Spotify',
-    trackCount: 40,
-  },
-  {
-    id: '6',
-    name: 'Discover Weekly',
-    description: 'Your weekly mixtape of fresh music',
-    image: 'https://i.scdn.co/image/ab67706f00000002c3af0c2355c24ed7023cd394',
-    owner: 'Spotify',
-    trackCount: 30,
-  },
-]
 
-const recentlyPlayed: Track[] = [
-  {
-    id: '1',
-    name: 'Blinding Lights',
-    artist: 'The Weeknd',
-    album: 'After Hours',
-    duration: 200,
-    image: '/placeholder-album.svg',
-    isPlaying: false,
-    isLiked: true,
-  },
-  {
-    id: '2',
-    name: 'Good 4 U',
-    artist: 'Olivia Rodrigo',
-    album: 'SOUR',
-    duration: 178,
-    image: '/placeholder-album.svg',
-    isPlaying: false,
-    isLiked: false,
-  },
-  {
-    id: '3',
-    name: 'Stay',
-    artist: 'The Kid LAROI, Justin Bieber',
-    album: 'F*CK LOVE 3: OVER YOU',
-    image: 'https://i.scdn.co/image/ab67616d0000b273c06f0e8b33ac2d246158253e',
-    duration: 141,
-    isPlaying: false,
-    isLiked: true,
-  },
-  {
-    id: '4',
-    name: 'Industry Baby',
-    artist: 'Lil Nas X, Jack Harlow',
-    album: 'MONTERO',
-    image: 'https://i.scdn.co/image/ab67616d0000b273e71f5011d68493c3b971c8c6',
-    duration: 212,
-    isPlaying: false,
-    isLiked: false,
-  },
-]
-
-const madeForYou: Playlist[] = [
-  {
-    id: '1',
-    name: 'Today\'s Top Hits',
-    description: 'The most played songs right now',
-    image: 'https://i.scdn.co/image/ab67706f00000002c3af0c2355c24ed7023cd394',
-    owner: 'Spotify',
-    trackCount: 50,
-  },
-  {
-    id: '2',
-    name: 'RapCaviar',
-    description: 'New music from Drake, Travis Scott, and more',
-    image: 'https://i.scdn.co/image/ab67706f00000002ca5a7517156021292e5663a6',
-    owner: 'Spotify',
-    trackCount: 65,
-  },
-  {
-    id: '3',
-    name: 'Rock Classics',
-    description: 'Rock legends & epic songs',
-    image: 'https://i.scdn.co/image/ab67706f00000002fe24d7084be472288cd6ee6c',
-    owner: 'Spotify',
-    trackCount: 100,
-  },
-  {
-    id: '4',
-    name: 'Chill Hits',
-    description: 'Kick back to the best new and recent chill hits',
-    image: 'https://i.scdn.co/image/ab67706f00000002ca5a7517156021292e5663a6',
-    owner: 'Spotify',
-    trackCount: 75,
-  },
-  {
-    id: '5',
-    name: 'Pop Rising',
-    description: 'The biggest songs in pop right now',
-    image: 'https://i.scdn.co/image/ab67706f00000002fe24d7084be472288cd6ee6c',
-    owner: 'Spotify',
-    trackCount: 40,
-  },
-]
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -193,7 +58,7 @@ export default function Home() {
 
     // Fetch real Spotify data
     fetchSpotifyData()
-  }, [session, status])
+  }, [session, status, router])
 
   const fetchSpotifyData = async () => {
     try {
@@ -220,7 +85,7 @@ export default function Home() {
       setFeaturedPlaylists(playlists)
       setRecentlyPlayed(recent)
       setMadeForYou(recommendations)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error fetching Spotify data:', err)
       setError('Failed to load Spotify data')
       
@@ -362,7 +227,6 @@ export default function Home() {
                 index={index + 1}
                 onPlay={handlePlayTrack}
                 onLike={handleLikeTrack}
-                onDownload={handleDownloadTrack}
                 showIndex={true}
               />
             ))}
@@ -387,7 +251,6 @@ export default function Home() {
                 index={index + 1}
                 onPlay={handlePlayTrack}
                 onLike={handleLikeTrack}
-                onDownload={handleDownloadTrack}
                 showIndex={true}
               />
             ))}

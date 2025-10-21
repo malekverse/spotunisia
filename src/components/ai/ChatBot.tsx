@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { cn } from '@/lib/utils'
 
 interface Message {
   role: 'user' | 'assistant'

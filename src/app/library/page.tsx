@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -23,6 +24,8 @@ import { PlaylistCard } from '@/components/ui/PlaylistCard'
 import { TrackCard } from '@/components/ui/TrackCard'
 import { Loading } from '@/components/ui/Loading'
 import { cn } from '@/lib/utils'
+
+
 
 // Mock data for user's library
 const userPlaylists = [
@@ -157,7 +160,14 @@ export default function LibraryPage() {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
     }
-  }, [status])
+  }, [status, router])
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'liked' || tab === 'downloaded') {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
 
   // Show loading while checking authentication
   if (status === 'loading') {
@@ -172,13 +182,6 @@ export default function LibraryPage() {
   if (status === 'unauthenticated') {
     return null
   }
-
-  useEffect(() => {
-    const tab = searchParams.get('tab')
-    if (tab === 'liked' || tab === 'downloaded') {
-      setActiveTab(tab)
-    }
-  }, [searchParams])
 
   const handlePlayPlaylist = (playlistId: string) => {
     console.log('Playing playlist:', playlistId)
@@ -263,7 +266,7 @@ export default function LibraryPage() {
           {(['playlists', 'liked', 'downloaded'] as const).map((tab) => (
             <Button
               key={tab}
-              variant={activeTab === tab ? 'spotify' : 'ghost'}
+              variant={activeTab === tab ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setActiveTab(tab)}
               className={cn(
@@ -326,9 +329,11 @@ export default function LibraryPage() {
                       className="flex items-center space-x-4 p-3 rounded-md hover:bg-spotify-lightgray group cursor-pointer"
                       onClick={() => handlePlayPlaylist(playlist.id)}
                     >
-                      <img
+                      <Image
                         src={playlist.image}
                         alt={playlist.name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded"
                       />
                       <div className="flex-1">
@@ -337,7 +342,7 @@ export default function LibraryPage() {
                       </div>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
-                          variant="spotify"
+                          variant="default"
                           size="sm"
                           className="rounded-full w-10 h-10"
                         >
@@ -364,7 +369,7 @@ export default function LibraryPage() {
                   <p className="text-spotify-text">{likedSongs.length} songs</p>
                 </div>
                 <Button
-                  variant="spotify"
+                  variant="default"
                   size="lg"
                   className="rounded-full ml-auto"
                   onClick={() => handlePlayTrack('liked-songs')}
@@ -388,7 +393,6 @@ export default function LibraryPage() {
                       index={index + 1}
                       onPlay={handlePlayTrack}
                       onLike={handleLikeTrack}
-                      onDownload={handleDownloadTrack}
                       showIndex={true}
                       showDateAdded={true}
                     />
@@ -409,7 +413,7 @@ export default function LibraryPage() {
                   <p className="text-spotify-text">{downloadedSongs.length} songs</p>
                 </div>
                 <Button
-                  variant="spotify"
+                  variant="default"
                   size="lg"
                   className="rounded-full ml-auto"
                   onClick={() => handlePlayTrack('downloaded-songs')}
@@ -433,7 +437,6 @@ export default function LibraryPage() {
                       index={index + 1}
                       onPlay={handlePlayTrack}
                       onLike={handleLikeTrack}
-                      onDownload={handleDownloadTrack}
                       showIndex={true}
                     />
                   </motion.div>
@@ -466,7 +469,7 @@ export default function LibraryPage() {
               {searchQuery ? 'Try adjusting your search.' : 'Start building your library.'}
             </p>
             {activeTab === 'playlists' && !searchQuery && (
-              <Button variant="spotify" onClick={handleCreatePlaylist}>
+              <Button variant="default" onClick={handleCreatePlaylist}>
                 Create your first playlist
               </Button>
             )}

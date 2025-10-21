@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 interface ImageWithFallbackProps {
@@ -41,12 +42,12 @@ export function ImageWithFallback({
   }
 
   return (
-    <img
+    <Image
       src={imgSrc}
       alt={alt}
       className={cn('object-cover', className)}
-      width={width}
-      height={height}
+      width={width || 300}
+      height={height || 300}
       onError={handleError}
       onLoad={handleLoad}
       {...props}

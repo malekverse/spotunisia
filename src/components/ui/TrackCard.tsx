@@ -25,6 +25,7 @@ interface TrackCardProps {
   index?: number
   onPlay: (trackId: string) => void
   onLike: (trackId: string) => void
+  onMore?: (track: Track) => void
   showImage?: boolean
   showIndex?: boolean
   compact?: boolean
@@ -37,6 +38,7 @@ export function TrackCard({
   index,
   onPlay,
   onLike,
+  onMore,
   showImage = true,
   showIndex = false,
   compact = false,
@@ -338,7 +340,7 @@ export function TrackCard({
                   className="w-9 h-9 p-0 hover:bg-white/15 rounded-full transition-all duration-300 hover:shadow-lg"
                   onClick={(e) => {
                     e.stopPropagation()
-                    onLike?.(track)
+                    onLike?.(track.id)
                   }}
                 >
                   <motion.div
