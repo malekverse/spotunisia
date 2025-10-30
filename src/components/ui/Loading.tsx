@@ -253,8 +253,8 @@ export function Loading({
                   ease: 'easeInOut',
                 }}
                 initial={{
-                  x: Math.cos((i * 60) * Math.PI / 180) * 40,
-                  y: Math.sin((i * 60) * Math.PI / 180) * 40,
+                  x: Math.round(Math.cos((i * 60) * Math.PI / 180) * 40),
+                  y: Math.round(Math.sin((i * 60) * Math.PI / 180) * 40),
                 }}
               />
             ))}

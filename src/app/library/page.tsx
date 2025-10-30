@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { useSession } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { downloadTrack } from '@/lib/download'
 import { 
   Music, 
   Heart, 
@@ -84,6 +86,7 @@ const likedSongs = [
     album: 'After Hours',
     image: 'https://i.scdn.co/image/ab67616d0000b273c06f0e8b33c6e8a8c2f5c7e1',
     duration: 200,
+    preview_url: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3',
     isLiked: true,
     dateAdded: '2024-01-15',
   },
@@ -94,6 +97,7 @@ const likedSongs = [
     album: 'SOUR',
     image: 'https://i.scdn.co/image/ab67616d0000b273a91c10fe9472d9bd89802e5a',
     duration: 178,
+    preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     isLiked: true,
     dateAdded: '2024-01-14',
   },
@@ -104,6 +108,7 @@ const likedSongs = [
     album: 'F*CK LOVE 3: OVER YOU',
     image: 'https://i.scdn.co/image/ab67616d0000b273c4dee8b6c2b5b0c8f0b5c7e1',
     duration: 141,
+    preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     isLiked: true,
     dateAdded: '2024-01-13',
   },
@@ -114,6 +119,7 @@ const likedSongs = [
     album: 'Future Nostalgia',
     image: 'https://i.scdn.co/image/ab67616d0000b273c4dee8b6c2b5b0c8f0b5c7e1',
     duration: 203,
+    preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     isLiked: true,
     dateAdded: '2024-01-12',
   }
@@ -127,6 +133,7 @@ const downloadedSongs = [
     album: 'After Hours',
     image: 'https://i.scdn.co/image/ab67616d0000b273c06f0e8b33c6e8a8c2f5c7e1',
     duration: 200,
+    preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     isLiked: true,
     isDownloaded: true,
   },
@@ -137,6 +144,7 @@ const downloadedSongs = [
     album: 'SOUR',
     image: 'https://i.scdn.co/image/ab67616d0000b273a91c10fe9472d9bd89802e5a',
     duration: 178,
+    preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     isLiked: true,
     isDownloaded: true,
   }
@@ -155,6 +163,7 @@ export default function LibraryPage() {
   const [sortBy, setSortBy] = useState<SortType>('recent')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'playlists' | 'liked' | 'downloaded'>('playlists')
+  const [downloadingTrackId, setDownloadingTrackId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -195,8 +204,56 @@ export default function LibraryPage() {
     console.log('Liking track:', trackId)
   }
 
-  const handleDownloadTrack = (trackId: string) => {
-    console.log('Downloading track:', trackId)
+  const handleDownloadTrack = async (track: any) => {
+    try {
+      setDownloadingTrackId(track.id)
+      console.log('Downloading track:', track.name, 'by', track.artist)
+      
+      await downloadTrack(track.name, track.artist, 'youtube')
+      
+      console.log('Download completed for:', track.name)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Download failed. Please try again.')
+    } finally {
+      setDownloadingTrackId(null)
+    }
+  }
+
+  const handleDownloadPlaylist = async (playlist: any) => {
+    try {
+      console.log('Downloading playlist:', playlist.name)
+      
+      // For now, we'll create a simple implementation that downloads a few sample tracks
+      // In a real implementation, you'd fetch the actual tracks from the playlist
+      const sampleTracks = [
+        { name: 'Sample Track 1', artist: 'Sample Artist 1' },
+        { name: 'Sample Track 2', artist: 'Sample Artist 2' },
+        { name: 'Sample Track 3', artist: 'Sample Artist 3' }
+      ]
+      
+      const response = await fetch('/api/download-playlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tracks: sampleTracks,
+          platform: 'youtube'
+        }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to download playlist')
+      }
+      
+      const result = await response.json()
+      console.log('Playlist download initiated:', result)
+      alert(`Playlist "${playlist.name}" download initiated! Check console for details.`)
+    } catch (error) {
+      console.error('Playlist download failed:', error)
+      alert('Playlist download failed. Please try again.')
+    }
   }
 
   const handleCreatePlaylist = () => {
@@ -314,6 +371,7 @@ export default function LibraryPage() {
                       <PlaylistCard
                         playlist={playlist}
                         onPlay={handlePlayPlaylist}
+                        onDownload={handleDownloadPlaylist}
                       />
                     </motion.div>
                   ))}
@@ -329,11 +387,9 @@ export default function LibraryPage() {
                       className="flex items-center space-x-4 p-3 rounded-md hover:bg-spotify-lightgray group cursor-pointer"
                       onClick={() => handlePlayPlaylist(playlist.id)}
                     >
-                      <Image
+                      <PlaylistImage
                         src={playlist.image}
                         alt={playlist.name}
-                        width={48}
-                        height={48}
                         className="w-12 h-12 rounded"
                       />
                       <div className="flex-1">
@@ -393,8 +449,10 @@ export default function LibraryPage() {
                       index={index + 1}
                       onPlay={handlePlayTrack}
                       onLike={handleLikeTrack}
+                      onDownload={handleDownloadTrack}
                       showIndex={true}
                       showDateAdded={true}
+                      isDownloading={downloadingTrackId === track.id}
                     />
                   </motion.div>
                 ))}
@@ -437,7 +495,9 @@ export default function LibraryPage() {
                       index={index + 1}
                       onPlay={handlePlayTrack}
                       onLike={handleLikeTrack}
+                      onDownload={handleDownloadTrack}
                       showIndex={true}
+                      isDownloading={downloadingTrackId === track.id}
                     />
                   </motion.div>
                 ))}

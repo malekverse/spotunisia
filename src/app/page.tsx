@@ -10,6 +10,7 @@ import { HomepageSkeleton } from '@/components/ui/Loading';
 import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { downloadTrack } from '@/lib/download'
 
 
 
@@ -31,6 +32,7 @@ interface Track {
   album: string
   duration: number
   image: string
+  preview_url?: string
   isPlaying: boolean
   isLiked: boolean
 }
@@ -47,12 +49,14 @@ export default function Home() {
   const [madeForYou, setMadeForYou] = useState<Track[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [downloadingTrackId, setDownloadingTrackId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'loading') return // Still loading
 
     if (!session) {
-      router.push('/auth/signin')
+      // Show fallback data when not authenticated
+      setFallbackData()
       return
     }
 
@@ -107,17 +111,118 @@ export default function Home() {
     }
   }
 
+  const setFallbackData = () => {
+    setLoading(true)
+    
+    // Set fallback playlists
+    setFeaturedPlaylists([
+      {
+        id: 'demo-1',
+        name: 'Demo Playlist',
+        description: 'Sample tracks for testing',
+        image: '/placeholder-playlist.svg',
+        owner: 'Demo',
+        trackCount: 5,
+      },
+      {
+        id: 'demo-2',
+        name: 'Popular Hits',
+        description: 'Sign in to see your real playlists',
+        image: '/placeholder-playlist.svg',
+        owner: 'Demo',
+        trackCount: 10,
+      }
+    ])
+
+    // Set fallback tracks with preview URLs for testing
+    const fallbackTracks: Track[] = [
+      {
+        id: 'demo-track-1',
+        name: 'Demo Song 1',
+        artist: 'Demo Artist',
+        album: 'Demo Album',
+        duration: 180000,
+        image: '/placeholder-album.svg',
+        preview_url: 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3',
+        isPlaying: false,
+        isLiked: false,
+      },
+      {
+        id: 'demo-track-2',
+        name: 'Demo Song 2',
+        artist: 'Another Artist',
+        album: 'Another Album',
+        duration: 210000,
+        image: '/placeholder-album.svg',
+        preview_url: 'https://commondatastorage.googleapis.com/codeskulptor-assets/week7-brrring.m4a',
+        isPlaying: false,
+        isLiked: false,
+      },
+      {
+        id: 'demo-track-3',
+        name: 'Demo Song 3',
+        artist: 'Third Artist',
+        album: 'Third Album',
+        duration: 195000,
+        image: '/placeholder-album.svg',
+        preview_url: 'https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/intromusic.ogg',
+        isPlaying: false,
+        isLiked: false,
+      }
+    ]
+
+    setRecentlyPlayed(fallbackTracks)
+    setMadeForYou(fallbackTracks)
+    setLoading(false)
+  }
+
   if (status === 'loading' || loading) {
     return <HomepageSkeleton />;
   }
 
-  // Redirect to sign-in if not authenticated
-  if (status === 'unauthenticated') {
-    return null
-  }
+  // Debug logging
+  console.log('🏠 Home page render - Recently played tracks:', recentlyPlayed.length)
+  console.log('🏠 Home page render - Made for you tracks:', madeForYou.length)
+  console.log('🏠 Home page render - Session status:', status)
 
   const handlePlayPlaylist = (playlistId: string) => {
     console.log('Playing playlist:', playlistId)
+  }
+
+  const handleDownloadPlaylist = async (playlist: Playlist) => {
+    try {
+      console.log('Downloading playlist:', playlist.name)
+      
+      // For now, we'll create a simple implementation that downloads a few sample tracks
+      // In a real implementation, you'd fetch the actual tracks from the playlist
+      const sampleTracks = [
+        { name: 'Sample Track 1', artist: 'Sample Artist 1' },
+        { name: 'Sample Track 2', artist: 'Sample Artist 2' },
+        { name: 'Sample Track 3', artist: 'Sample Artist 3' }
+      ]
+      
+      const response = await fetch('/api/download-playlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tracks: sampleTracks,
+          platform: 'youtube'
+        }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to download playlist')
+      }
+      
+      const result = await response.json()
+      console.log('Playlist download initiated:', result)
+      alert(`Playlist "${playlist.name}" download initiated! Check console for details.`)
+    } catch (error) {
+      console.error('Playlist download failed:', error)
+      alert('Playlist download failed. Please try again.')
+    }
   }
 
   const handlePlayTrack = (trackId: string) => {
@@ -128,8 +233,20 @@ export default function Home() {
     console.log('Liking track:', trackId)
   }
 
-  const handleDownloadTrack = (trackId: string) => {
-    console.log('Downloading track:', trackId)
+  const handleDownloadTrack = async (track: Track) => {
+    try {
+      setDownloadingTrackId(track.id)
+      console.log('Downloading track:', track.name, 'by', track.artist)
+      
+      await downloadTrack(track.name, track.artist, 'youtube')
+      
+      console.log('Download completed for:', track.name)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Download failed. Please try again.')
+    } finally {
+      setDownloadingTrackId(null)
+    }
   }
 
   const getGreeting = () => {
@@ -227,7 +344,9 @@ export default function Home() {
                 index={index + 1}
                 onPlay={handlePlayTrack}
                 onLike={handleLikeTrack}
+                onDownload={handleDownloadTrack}
                 showIndex={true}
+                isDownloading={downloadingTrackId === track.id}
               />
             ))}
           </div>
@@ -246,12 +365,14 @@ export default function Home() {
           <div className="space-y-1">
             {madeForYou.map((track, index) => (
               <TrackCard
-                key={track.id}
+                key={track.uniqueKey || track.id}
                 track={track}
                 index={index + 1}
                 onPlay={handlePlayTrack}
                 onLike={handleLikeTrack}
+                onDownload={handleDownloadTrack}
                 showIndex={true}
+                isDownloading={downloadingTrackId === track.id}
               />
             ))}
           </div>
@@ -273,6 +394,7 @@ export default function Home() {
                 key={playlist.id}
                 playlist={playlist}
                 onPlay={handlePlayPlaylist}
+                onDownload={handleDownloadPlaylist}
               />
             ))}
           </div>

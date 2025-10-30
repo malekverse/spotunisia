@@ -13,6 +13,7 @@ interface SpotifyTrack {
     images?: Array<{ url: string }>
   }
   duration_ms: number
+  preview_url: string | null
 }
 
 export async function GET(request: NextRequest) {
@@ -88,6 +89,7 @@ export async function GET(request: NextRequest) {
       album: track.album.name,
       duration: Math.floor(track.duration_ms / 1000),
       image: track.album.images?.[0]?.url || '/placeholder-album.svg',
+      preview_url: track.preview_url,
       isPlaying: false,
       isLiked: false,
     }))
@@ -105,6 +107,7 @@ export async function GET(request: NextRequest) {
         album: 'Recommendations',
         duration: 180,
         image: '/placeholder-album.svg',
+        preview_url: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3',
         isPlaying: false,
         isLiked: false,
       }

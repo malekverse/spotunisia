@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Play, 
@@ -19,59 +19,47 @@ import {
 import { Button } from '@/components/ui/Button'
 import { cn, formatDuration } from '@/lib/utils'
 import { useMusicPlayerShortcuts } from '@/hooks/useKeyboardShortcuts'
-
-interface Track {
-  id: string
-  name: string
-  artist: string
-  album: string
-  image: string
-  duration: number
-  preview_url?: string
-  isLiked?: boolean
-  isDownloaded?: boolean
-}
+import { useMusicPlayerStore } from '@/lib/store'
 
 interface MusicPlayerProps {
-  currentTrack?: Track
-  isPlaying: boolean
-  onPlayPause: () => void
-  onNext: () => void
-  onPrevious: () => void
-  onShuffle: () => void
-  onRepeat: () => void
-  onLike: (trackId: string) => void
-  onDownload: (trackId: string) => void
-  isShuffled: boolean
-  repeatMode: 'off' | 'all' | 'one'
   className?: string
 }
 
 export function MusicPlayer({
-  currentTrack,
-  isPlaying,
-  onPlayPause,
-  onNext,
-  onPrevious,
-  onShuffle,
-  onRepeat,
-  onLike,
-  onDownload,
-  isShuffled,
-  repeatMode,
   className
 }: MusicPlayerProps) {
-  const [currentTime, setCurrentTime] = useState(0)
-  const [volume, setVolume] = useState(0.7)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
+  
+  // Use the music player store
+  const {
+    currentTrack,
+    isPlaying,
+    currentTime,
+    volume,
+    isMuted,
+    isLoading,
+    loadingTrackId,
+    audioError,
+    isShuffled,
+    repeatMode,
+    isExpanded,
+    setIsPlaying,
+    setCurrentTime,
+    setVolume,
+    toggleMute,
+    setLoading,
+    setAudioError,
+    playNext,
+    playPrevious,
+    toggleShuffle,
+    setRepeatMode,
+    toggleExpanded
+  } = useMusicPlayerStore()
 
   // Volume control handlers
   const handleVolumeUp = () => {
     const newVolume = Math.min(1, volume + 0.1)
     setVolume(newVolume)
-    setIsMuted(false)
     if (audioRef.current) {
       audioRef.current.volume = newVolume
     }
@@ -85,44 +73,203 @@ export function MusicPlayer({
     }
   }
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted)
+  const handleToggleMute = () => {
+    toggleMute()
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? volume : 0
+      audioRef.current.volume = !isMuted ? 0 : volume
     }
+  }
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying)
+  }
+
+  const handleRepeat = () => {
+    const modes: ('off' | 'track' | 'playlist')[] = ['off', 'track', 'playlist']
+    const currentModeIndex = modes.indexOf(repeatMode)
+    const nextIndex = (currentModeIndex + 1) % modes.length
+    setRepeatMode(modes[nextIndex])
   }
 
   // Keyboard shortcuts
   useMusicPlayerShortcuts({
-    onPlayPause,
-    onNext,
-    onPrevious,
+    onPlayPause: handlePlayPause,
+    onNext: playNext,
+    onPrevious: playPrevious,
     onVolumeUp: handleVolumeUp,
     onVolumeDown: handleVolumeDown,
-    onMute: toggleMute,
-    onShuffle,
-    onRepeat,
+    onMute: handleToggleMute,
+    onShuffle: toggleShuffle,
+    onRepeat: handleRepeat,
     enabled: !!currentTrack
   })
 
+  // Track the current play promise to prevent interruptions
+  const playPromiseRef = useRef<Promise<void> | null>(null)
+
+  // Function to get stream URL from our API
+  const getStreamUrl = async (track: any): Promise<string> => {
+    try {
+      const query = `${track.name} ${track.artists?.[0]?.name || ''}`.trim()
+      
+      const response = await fetch('/api/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trackName: track.name,
+          artistName: track.artists?.[0]?.name,
+          platform: 'youtube' // Default to YouTube for better availability
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Stream API error: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.data?.streamUrl) {
+        return data.data.streamUrl
+      } else {
+        throw new Error(data.error || 'No stream URL received')
+      }
+    } catch (error) {
+      console.error('Failed to get stream URL:', error)
+      // Fallback to original preview URL or default audio
+      return track.preview_url || 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'
+    }
+  }
+
   // Update audio element when track changes
   useEffect(() => {
-    if (audioRef.current && currentTrack?.preview_url) {
-      audioRef.current.src = currentTrack.preview_url
-      audioRef.current.volume = isMuted ? 0 : volume
+    if (audioRef.current && currentTrack) {
+      // Set loading state
+      setLoading(true, currentTrack.id)
+      setAudioError(null)
+      
+      // Cancel any ongoing play promise before changing source
+      if (playPromiseRef.current) {
+        playPromiseRef.current.catch(() => {
+          // Ignore interruption errors when we're intentionally changing tracks
+        })
+        playPromiseRef.current = null
+      }
+      
+      // Pause current audio before changing source
+      if (!audioRef.current.paused) {
+        audioRef.current.pause()
+      }
+      
+      // Get stream URL from our API
+      getStreamUrl(currentTrack).then((audioSource) => {
+        if (audioRef.current) {
+          audioRef.current.src = audioSource
+          audioRef.current.volume = isMuted ? 0 : volume
+        }
+      }).catch((error) => {
+        console.error('Failed to set audio source:', error)
+        setAudioError('Failed to load audio stream')
+        setLoading(false, null)
+      })
+      
+      // Add error handling
+      const handleError = (e: Event) => {
+        console.error('Audio error:', e)
+        console.error('Audio error details:', audioRef.current?.error)
+        const errorMessage = audioRef.current?.error?.message || 'Audio playback failed'
+        setAudioError(errorMessage)
+        setIsPlaying(false)
+        setLoading(false, null)
+      }
+      
+      const handleCanPlay = () => {
+        console.log('Audio can play')
+        setLoading(false, null)
+        setAudioError(null)
+      }
+      
+      const handleLoadStart = () => {
+        console.log('Audio load started')
+        setLoading(true, currentTrack.id)
+      }
+      
+      const handleLoadedData = () => {
+        console.log('Audio data loaded')
+        setLoading(false, null)
+        // If we should be playing, start playback now that audio is ready
+        if (isPlaying && audioRef.current && !playPromiseRef.current) {
+          playPromiseRef.current = audioRef.current.play()
+            .then(() => {
+              console.log('Audio playback started successfully')
+              playPromiseRef.current = null
+            })
+            .catch((error) => {
+              console.error('Play failed after load:', error)
+              setAudioError(error.message || 'Playback failed')
+              setIsPlaying(false)
+              playPromiseRef.current = null
+            })
+        }
+      }
+      
+      audioRef.current.addEventListener('error', handleError)
+      audioRef.current.addEventListener('canplay', handleCanPlay)
+      audioRef.current.addEventListener('loadstart', handleLoadStart)
+      audioRef.current.addEventListener('loadeddata', handleLoadedData)
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('error', handleError)
+          audioRef.current.removeEventListener('canplay', handleCanPlay)
+          audioRef.current.removeEventListener('loadstart', handleLoadStart)
+          audioRef.current.removeEventListener('loadeddata', handleLoadedData)
+        }
+      }
+    } else if (currentTrack && !currentTrack.preview_url) {
+      // Handle case where track has no preview URL
+      setAudioError('No preview available for this track')
+      setLoading(false, null)
     }
-  }, [currentTrack, volume, isMuted])
+  }, [currentTrack, volume, isMuted, isPlaying, setLoading, setAudioError])
 
   // Handle play/pause
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(console.error)
+        // Only attempt to play if audio is ready and no play promise is pending
+        if (audioRef.current.readyState >= 2 && !playPromiseRef.current && !isLoading) { // HAVE_CURRENT_DATA or higher
+          console.log('Attempting to play audio:', audioRef.current.src)
+          playPromiseRef.current = audioRef.current.play()
+            .then(() => {
+              console.log('Audio playback started successfully')
+              setAudioError(null)
+              playPromiseRef.current = null
+            })
+            .catch((error) => {
+              console.error('Play failed:', error)
+              setAudioError(error.message || 'Playback failed')
+              setIsPlaying(false) // Reset playing state if play fails
+              playPromiseRef.current = null
+            })
+        } else if (audioRef.current.readyState < 2 || isLoading) {
+          console.log('Audio not ready yet, waiting for loadeddata event')
+          // Audio will start playing via the loadeddata event handler
+        }
       } else {
+        console.log('Pausing audio')
+        // Cancel any pending play promise
+        if (playPromiseRef.current) {
+          playPromiseRef.current.catch(() => {
+            // Ignore interruption errors when pausing
+          })
+          playPromiseRef.current = null
+        }
         audioRef.current.pause()
       }
     }
-  }, [isPlaying])
+  }, [isPlaying, isLoading, setAudioError, setIsPlaying])
 
   // Update current time
   useEffect(() => {
@@ -130,7 +277,7 @@ export function MusicPlayer({
     if (!audio) return
 
     const updateTime = () => setCurrentTime(audio.currentTime)
-    const handleEnded = () => onNext()
+    const handleEnded = () => playNext()
 
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('ended', handleEnded)
@@ -139,7 +286,7 @@ export function MusicPlayer({
       audio.removeEventListener('timeupdate', updateTime)
       audio.removeEventListener('ended', handleEnded)
     }
-  }, [onNext])
+  }, [playNext, setCurrentTime])
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!audioRef.current || !currentTrack) return
@@ -254,7 +401,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onShuffle}
+                  onClick={toggleShuffle}
                   className={cn(
                     'text-spotify-text hover:text-white',
                     isShuffled && 'text-primary'
@@ -266,7 +413,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onPrevious}
+                  onClick={playPrevious}
                   className="text-white hover:scale-110 transition-transform"
                 >
                   <SkipBack className="w-6 h-6" />
@@ -275,7 +422,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="lg"
-                  onClick={onPlayPause}
+                  onClick={handlePlayPause}
                   className="w-14 h-14 rounded-full bg-white text-black hover:scale-110 transition-transform"
                 >
                   {isPlaying ? (
@@ -288,7 +435,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onNext}
+                  onClick={playNext}
                   className="text-white hover:scale-110 transition-transform"
                 >
                   <SkipForward className="w-6 h-6" />
@@ -297,7 +444,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onRepeat}
+                  onClick={handleRepeat}
                   className={cn(
                     'text-spotify-text hover:text-white',
                     repeatMode !== 'off' && 'text-primary'
@@ -315,7 +462,10 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onLike(currentTrack.id)}
+                  onClick={() => {
+                    // Handle like functionality - in a real app this would sync with Spotify API
+                    console.log('Like track:', currentTrack.id)
+                  }}
                   className={cn(
                     'text-spotify-text hover:text-white',
                     currentTrack.isLiked && 'text-primary'
@@ -327,7 +477,10 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onDownload(currentTrack.id)}
+                  onClick={() => {
+                    // Handle download functionality - in a real app this would download the track
+                    console.log('Download track:', currentTrack.id)
+                  }}
                   className={cn(
                     'text-spotify-text hover:text-white',
                     currentTrack.isDownloaded && 'text-primary'
@@ -390,7 +543,10 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onLike(currentTrack.id)}
+                  onClick={() => {
+                    // Handle like functionality - in a real app this would sync with Spotify API
+                    console.log('Like track:', currentTrack.id)
+                  }}
                   className={cn(
                     'text-spotify-text hover:text-white transition-all duration-200',
                     currentTrack.isLiked && 'text-red-500 hover:text-red-400'
@@ -412,7 +568,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onShuffle}
+                  onClick={toggleShuffle}
                   className={cn(
                     'w-8 h-8 p-0 text-spotify-text hover:text-white hidden md:flex transition-all duration-200 liquid-glass-hover rounded-lg',
                     isShuffled && 'text-spotify-green hover:text-spotify-green'
@@ -426,7 +582,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onPrevious}
+                  onClick={playPrevious}
                   className="w-8 h-8 p-0 text-white hover:text-spotify-green transition-all duration-200 liquid-glass-hover rounded-lg"
                 >
                   <SkipBack className="w-5 h-5" />
@@ -441,7 +597,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onPlayPause}
+                  onClick={handlePlayPause}
                   className="w-12 h-12 p-0 rounded-full bg-gradient-to-br from-white to-gray-100 text-black hover:from-spotify-green hover:to-green-400 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   {isPlaying ? (
@@ -463,7 +619,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onNext}
+                  onClick={playNext}
                   className="w-8 h-8 p-0 text-white hover:text-spotify-green transition-all duration-200 liquid-glass-hover rounded-lg"
                 >
                   <SkipForward className="w-5 h-5" />
@@ -474,7 +630,7 @@ export function MusicPlayer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onRepeat}
+                  onClick={handleRepeat}
                   className={cn(
                     'w-8 h-8 p-0 text-spotify-text hover:text-white hidden md:flex transition-all duration-200 liquid-glass-hover rounded-lg',
                     repeatMode !== 'off' && 'text-spotify-green hover:text-spotify-green'

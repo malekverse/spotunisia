@@ -12,6 +12,7 @@ import { TrackCard } from '@/components/ui/TrackCard'
 import { PlaylistCard } from '@/components/ui/PlaylistCard'
 import { Loading } from '@/components/ui/Loading'
 import { cn } from '@/lib/utils'
+import { downloadTrack } from '@/lib/download'
 
 // Types for search results
 interface Artist {
@@ -100,6 +101,7 @@ export default function SearchPage() {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const [activeFilter, setActiveFilter] = useState<'all' | 'tracks' | 'playlists' | 'artists' | 'albums'>('all')
   const [error, setError] = useState<string | null>(null)
+  const [downloadingTrackId, setDownloadingTrackId] = useState<string | null>(null)
 
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
@@ -225,12 +227,60 @@ export default function SearchPage() {
     console.log('Liking track:', trackId)
   }
 
-  const handleDownloadTrack = (trackId: string) => {
-    console.log('Downloading track:', trackId)
+  const handleDownloadTrack = async (track: Track) => {
+    try {
+      setDownloadingTrackId(track.id)
+      console.log('Downloading track:', track.name, 'by', track.artist)
+      
+      await downloadTrack(track.name, track.artist, 'youtube')
+      
+      console.log('Download completed for:', track.name)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Download failed. Please try again.')
+    } finally {
+      setDownloadingTrackId(null)
+    }
   }
 
   const handlePlayPlaylist = (playlistId: string) => {
     console.log('Playing playlist:', playlistId)
+  }
+
+  const handleDownloadPlaylist = async (playlist: Playlist) => {
+    try {
+      console.log('Downloading playlist:', playlist.name)
+      
+      // For now, we'll create a simple implementation that downloads a few sample tracks
+      // In a real implementation, you'd fetch the actual tracks from the playlist
+      const sampleTracks = [
+        { name: 'Sample Track 1', artist: 'Sample Artist 1' },
+        { name: 'Sample Track 2', artist: 'Sample Artist 2' },
+        { name: 'Sample Track 3', artist: 'Sample Artist 3' }
+      ]
+      
+      const response = await fetch('/api/download-playlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tracks: sampleTracks,
+          platform: 'youtube'
+        }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to download playlist')
+      }
+      
+      const result = await response.json()
+      console.log('Playlist download initiated:', result)
+      alert(`Playlist "${playlist.name}" download initiated! Check console for details.`)
+    } catch (error) {
+      console.error('Playlist download failed:', error)
+      alert('Playlist download failed. Please try again.')
+    }
   }
 
   const handleCategoryClick = (categoryName: string) => {
@@ -506,8 +556,10 @@ export default function SearchPage() {
                           index={index + 1}
                           onPlay={handlePlayTrack}
                           onLike={handleLikeTrack}
+                          onDownload={handleDownloadTrack}
                           showIndex={false}
                           compact={true}
+                          isDownloading={downloadingTrackId === track.id}
                         />
                       ))}
                     </div>
@@ -530,7 +582,9 @@ export default function SearchPage() {
                       index={index + 1}
                       onPlay={handlePlayTrack}
                       onLike={handleLikeTrack}
+                      onDownload={handleDownloadTrack}
                       showIndex={true}
+                      isDownloading={downloadingTrackId === track.id}
                     />
                   ))}
                 </div>
@@ -711,6 +765,7 @@ export default function SearchPage() {
                       key={playlist.id}
                       playlist={playlist}
                       onPlay={handlePlayPlaylist}
+                      onDownload={handleDownloadPlaylist}
                     />
                   ))}
                 </div>

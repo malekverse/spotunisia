@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { MusicPlayer } from '../player/MusicPlayer'
 import ChatBot from '../ai/ChatBot'
 import { cn } from '@/lib/utils'
-
+import { useMusicPlayerStore } from '@/lib/store'
 
 interface Track {
   id: string
@@ -35,51 +35,90 @@ export function AppLayout({
   onSearchChange 
 }: AppLayoutProps) {
   const { data: session } = useSession()
-  const [currentTrack, setCurrentTrack] = useState<Track | undefined>()
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isShuffled, setIsShuffled] = useState(false)
-  const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off')
+  
+  // Use the music player store
+  const {
+    currentTrack,
+    isPlaying,
+    isShuffled,
+    repeatMode,
+    queue,
+    currentIndex,
+    setCurrentTrack,
+    setIsPlaying,
+    setLoading,
+    setAudioError,
+    playNext,
+    playPrevious,
+    toggleShuffle,
+    setRepeatMode,
+    addToQueue
+  } = useMusicPlayerStore()
 
-
-  // Mock current track for demo
-  useEffect(() => {
-    if (session && !currentTrack) {
-      setCurrentTrack({
-        id: '1',
-        name: 'Blinding Lights',
-        artist: 'The Weeknd',
-        album: 'After Hours',
-        image: 'https://i.scdn.co/image/ab67616d0000b273c06f0e8b33c6e8a8c2f5c7e1',
-        duration: 200,
-        preview_url: 'https://p.scdn.co/mp3-preview/...',
-        isLiked: false,
-        isDownloaded: false
-      })
+  // Global play function that can be called from anywhere in the app
+  const playTrack = (track: Track) => {
+    try {
+      // Validate track data
+      if (!track || !track.id) {
+        console.error('Invalid track data provided')
+        setAudioError('Invalid track data')
+        return
+      }
+      
+      // Clear any previous errors
+      setAudioError(null)
+      
+      // If no preview URL is available, provide a fallback
+      const trackWithFallback = {
+        ...track,
+        preview_url: track.preview_url || 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3'
+      }
+      
+      // Set loading state
+      setLoading(true, track.id)
+      
+      setCurrentTrack(trackWithFallback)
+      setIsPlaying(true)
+      
+      // Add to queue if not already there
+      const isInQueue = queue.some(queueTrack => queueTrack.id === track.id)
+      if (!isInQueue) {
+        addToQueue(trackWithFallback)
+      }
+    } catch (error) {
+      console.error('Error in playTrack:', error)
+      setAudioError(error instanceof Error ? error.message : 'Failed to play track')
+      setLoading(false, null)
+      setIsPlaying(false)
     }
-  }, [session, currentTrack])
+  }
+
+  // Make playTrack available globally
+  useEffect(() => {
+    // Store the playTrack function globally so other components can access it
+    ;(window as any).playTrack = playTrack
+  }, [playTrack])
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
   }
 
   const handleNext = () => {
-    // Implement next track logic
-    console.log('Next track')
+    playNext()
   }
 
   const handlePrevious = () => {
-    // Implement previous track logic
-    console.log('Previous track')
+    playPrevious()
   }
 
   const handleShuffle = () => {
-    setIsShuffled(!isShuffled)
+    toggleShuffle()
   }
 
   const handleRepeat = () => {
-    const modes: ('off' | 'all' | 'one')[] = ['off', 'all', 'one']
-    const currentIndex = modes.indexOf(repeatMode)
-    const nextIndex = (currentIndex + 1) % modes.length
+    const modes: ('off' | 'track' | 'playlist')[] = ['off', 'track', 'playlist']
+    const currentModeIndex = modes.indexOf(repeatMode)
+    const nextIndex = (currentModeIndex + 1) % modes.length
     setRepeatMode(modes[nextIndex])
   }
 
@@ -136,19 +175,7 @@ export function AppLayout({
 
       {/* Music Player */}
       {currentTrack && (
-        <MusicPlayer
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onShuffle={handleShuffle}
-          onRepeat={handleRepeat}
-          onLike={handleLike}
-          onDownload={handleDownload}
-          isShuffled={isShuffled}
-          repeatMode={repeatMode}
-        />
+        <MusicPlayer />
       )}
 
       {/* AI Chatbot */}

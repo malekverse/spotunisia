@@ -66,7 +66,7 @@ export class SpotifyService {
 
   async getUserTopTracks(limit = 20, offset = 0, timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term') {
     try {
-      return await this.api.currentUser.topItems('tracks', timeRange, limit as 20, offset)
+      return await this.api.currentUser.topItems('tracks', timeRange, limit, offset)
     } catch (error) {
       console.error('Error fetching user top tracks:', error)
       throw error
@@ -75,7 +75,7 @@ export class SpotifyService {
 
   async getUserTopArtists(limit = 20, offset = 0, timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term') {
     try {
-      return await this.api.currentUser.topItems('artists', timeRange, limit as 20, offset)
+      return await this.api.currentUser.topItems('artists', timeRange, limit, offset)
     } catch (error) {
       console.error('Error fetching user top artists:', error)
       throw error
@@ -196,7 +196,7 @@ export class SpotifyService {
 
   async getAlbumTracks(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.albums.tracks(id, 'US', limit as 50, offset)
+      return await this.api.albums.tracks(id, 'US', limit, offset)
     } catch (error) {
       console.error('Error fetching album tracks:', error)
       throw error
@@ -224,7 +224,7 @@ export class SpotifyService {
 
   async getArtistAlbums(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.artists.albums(id, 'album,single', 'US', limit as 50, offset)
+      return await this.api.artists.albums(id, 'album,single', 'US', limit, offset)
     } catch (error) {
       console.error('Error fetching artist albums:', error)
       throw error
@@ -243,7 +243,7 @@ export class SpotifyService {
 
   async getPlaylistTracks(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.playlists.getPlaylistItems(id, 'US', undefined, limit as 50, offset)
+      return await this.api.playlists.getPlaylistItems(id, 'US', undefined, limit, offset)
     } catch (error) {
       console.error('Error fetching playlist tracks:', error)
       throw error
@@ -335,7 +335,7 @@ export class SpotifyService {
          },
         duration_ms: 210000,
         external_urls: { spotify: '#' },
-        preview_url: null,
+        preview_url: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3',
         popularity: 75
       },
       {
@@ -349,7 +349,7 @@ export class SpotifyService {
         },
         duration_ms: 195000,
         external_urls: { spotify: '#' },
-        preview_url: null,
+        preview_url: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3',
         popularity: 68
       },
       {
@@ -363,7 +363,7 @@ export class SpotifyService {
         },
         duration_ms: 225000,
         external_urls: { spotify: '#' },
-        preview_url: null,
+        preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
         popularity: 82
       },
       {
@@ -377,7 +377,7 @@ export class SpotifyService {
         },
         duration_ms: 180000,
         external_urls: { spotify: '#' },
-        preview_url: null,
+        preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
         popularity: 71
       },
       {
@@ -391,7 +391,7 @@ export class SpotifyService {
         },
         duration_ms: 205000,
         external_urls: { spotify: '#' },
-        preview_url: null,
+        preview_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
         popularity: 77
       }
     ]
@@ -451,14 +451,17 @@ export class SpotifyService {
     }
   }
 
-  // Browse
+  // Browse Categories
   async getBrowseCategories(limit = 20, offset = 0) {
     try {
       // Validate limit parameter (Spotify API requires 1-50)
       const validLimit = Math.max(1, Math.min(50, limit))
       const validOffset = Math.max(0, offset)
       
-      return await this.api.browse.getCategories('US', '20', 0)
+      console.log('getBrowseCategories called with:', { limit, offset, validLimit, validOffset })
+      
+      // Try different parameter formats based on SDK documentation
+      return await this.api.browse.getCategories('US', { limit: validLimit, offset: validOffset })
     } catch (error) {
       console.error('Error fetching browse categories:', error)
       throw error

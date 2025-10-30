@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react'
+import { Play, Pause, Heart, MoreHorizontal, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { AlbumImage } from '@/components/ui/ImageWithFallback'
 import { cn } from '@/lib/utils'
@@ -14,6 +14,7 @@ interface Track {
   album: string
   image: string
   duration: number
+  preview_url?: string | null
   isLiked?: boolean
   isDownloaded?: boolean
   isPlaying?: boolean
@@ -25,12 +26,14 @@ interface TrackCardProps {
   index?: number
   onPlay: (trackId: string) => void
   onLike: (trackId: string) => void
+  onDownload?: (track: Track) => void
   onMore?: (track: Track) => void
   showImage?: boolean
   showIndex?: boolean
   compact?: boolean
   showDateAdded?: boolean
   className?: string
+  isDownloading?: boolean
 }
 
 export function TrackCard({
@@ -38,12 +41,14 @@ export function TrackCard({
   index,
   onPlay,
   onLike,
+  onDownload,
   onMore,
   showImage = true,
   showIndex = false,
   compact = false,
   showDateAdded = false,
-  className
+  className,
+  isDownloading = false
 }: TrackCardProps) {
   const [isHovered, setIsHovered] = React.useState(false)
 
@@ -82,7 +87,13 @@ export function TrackCard({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onPlay(track.id)}
+            onClick={() => {
+              if (typeof window !== 'undefined' && (window as any).playTrack) {
+                (window as any).playTrack(track)
+              } else {
+                onPlay(track.id)
+              }
+            }}
             className="w-8 h-8 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
           >
             {track.isPlaying ? (
@@ -182,7 +193,12 @@ export function TrackCard({
                     className="w-10 h-10 rounded-full bg-spotify-green hover:bg-spotify-green/90 p-0 shadow-2xl hover:shadow-spotify-green/50 transition-all duration-300 border-2 border-white/20"
                     onClick={(e) => {
                       e.stopPropagation()
-                      onPlay(track.id)
+                      // Use global playTrack function if available, otherwise fallback to onPlay
+                      if (typeof window !== 'undefined' && (window as any).playTrack) {
+                        (window as any).playTrack(track)
+                      } else {
+                        onPlay(track.id)
+                      }
                     }}
                   >
                     <motion.div
@@ -355,6 +371,59 @@ export function TrackCard({
                           : 'text-spotify-text/70 hover:text-white'
                       )} 
                     />
+                  </motion.div>
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Download Button */}
+        <AnimatePresence>
+          {isHovered && onDownload && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.6, y: 10 }}
+              transition={{ 
+                type: "spring", 
+                damping: 20, 
+                stiffness: 400, 
+                delay: 0.075,
+                duration: 0.3
+              }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: -5 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", damping: 15, stiffness: 300 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-9 h-9 p-0 hover:bg-white/15 rounded-full transition-all duration-300 hover:shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDownload?.(track)
+                  }}
+                  disabled={isDownloading}
+                >
+                  <motion.div
+                    animate={track.isDownloaded ? { scale: [1, 1.3, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {isDownloading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-spotify-green" />
+                    ) : (
+                      <Download 
+                        className={cn(
+                          'w-5 h-5 transition-all duration-300',
+                          track.isDownloaded 
+                            ? 'text-spotify-green fill-current drop-shadow-lg' 
+                            : 'text-spotify-text/70 hover:text-white'
+                        )} 
+                      />
+                    )}
                   </motion.div>
                 </Button>
               </motion.div>

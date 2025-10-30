@@ -52,6 +52,11 @@ interface MusicPlayerState {
   volume: number
   isMuted: boolean
   
+  // Loading states
+  isLoading: boolean
+  loadingTrackId: string | null
+  audioError: string | null
+  
   // Queue management
   queue: Track[]
   currentIndex: number
@@ -74,6 +79,8 @@ interface MusicPlayerState {
   setCurrentTime: (time: number) => void
   setVolume: (volume: number) => void
   toggleMute: () => void
+  setLoading: (loading: boolean, trackId?: string | null) => void
+  setAudioError: (error: string | null) => void
   addToQueue: (track: Track) => void
   removeFromQueue: (index: number) => void
   clearQueue: () => void
@@ -96,6 +103,9 @@ export const useMusicPlayerStore = create<MusicPlayerState>()(
       currentTime: 0,
       volume: 0.8,
       isMuted: false,
+      isLoading: false,
+      loadingTrackId: null,
+      audioError: null,
       queue: [],
       currentIndex: 0,
       history: [],
@@ -113,6 +123,8 @@ export const useMusicPlayerStore = create<MusicPlayerState>()(
       setCurrentTime: (time) => set({ currentTime: time }),
       setVolume: (volume) => set({ volume: Math.max(0, Math.min(1, volume)) }),
       toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
+      setLoading: (loading, trackId = null) => set({ isLoading: loading, loadingTrackId: trackId }),
+      setAudioError: (error) => set({ audioError: error }),
       
       addToQueue: (track) => set((state) => ({
         queue: [...state.queue, track]

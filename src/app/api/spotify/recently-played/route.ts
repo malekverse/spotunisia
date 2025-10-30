@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
           album: item.track.album.name,
           duration: Math.floor(item.track.duration_ms / 1000),
           image: item.track.album.images?.[0]?.url || '/placeholder-album.svg',
+          preview_url: item.track.preview_url,
           isPlaying: false,
           isLiked: false, // We'll need to check this separately if needed
           playedAt: item.played_at,

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Play, Pause } from 'lucide-react'
+import { Play, Pause, Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { cn } from '@/lib/utils'
@@ -20,10 +20,11 @@ interface Playlist {
 interface PlaylistCardProps {
   playlist: Playlist
   onPlay: (playlistId: string) => void
+  onDownload?: (playlist: Playlist) => void
   className?: string
 }
 
-export function PlaylistCard({ playlist, onPlay, className }: PlaylistCardProps) {
+export function PlaylistCard({ playlist, onPlay, onDownload, className }: PlaylistCardProps) {
   const [isHovered, setIsHovered] = React.useState(false)
 
   return (
@@ -58,7 +59,7 @@ export function PlaylistCard({ playlist, onPlay, className }: PlaylistCardProps)
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
         
-        {/* Play Button Overlay */}
+        {/* Action Buttons Overlay */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 10 }}
           animate={{ 
@@ -67,13 +68,31 @@ export function PlaylistCard({ playlist, onPlay, className }: PlaylistCardProps)
             y: isHovered || playlist.isPlaying ? 0 : 10
           }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="absolute bottom-3 right-3"
+          className="absolute bottom-3 right-3 flex gap-2"
         >
+          {/* Download Button */}
+          {onDownload && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDownload(playlist)
+              }}
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 hover:scale-110 transition-all duration-300 shadow-2xl border-2 border-white/20"
+            >
+              <Download className="w-5 h-5" />
+            </Button>
+          )}
+          
+          {/* Play Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={(e) => {
               e.stopPropagation()
+              // For playlists, we'll just call the original onPlay for now
+              // In a real app, this would play the first track of the playlist
               onPlay(playlist.id)
             }}
             className="w-14 h-14 rounded-full bg-gradient-to-br from-spotify-green to-green-400 text-black hover:from-green-400 hover:to-spotify-green hover:scale-110 transition-all duration-300 shadow-2xl border-2 border-white/20"
