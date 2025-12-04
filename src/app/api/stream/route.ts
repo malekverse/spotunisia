@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import playdl from 'play-dl';
 
+// Type for the track result from playdl search
+interface TrackResult {
+  url: string;
+  title?: string;
+  name?: string;
+  durationInSec?: number;
+  thumbnails?: { url: string }[];
+  thumbnail?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
-    const platform = searchParams.get('platform') || 'youtube'; // Default to YouTube
+    const platform = searchParams.get('platform') || 'youtube';
     
     if (!query) {
       return NextResponse.json(
@@ -51,8 +61,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const track = searchResults[0];
-    console.log('Stream API: Found track:', track.title);
+    const track = searchResults[0] as TrackResult;
+    const trackTitle = track.title || track.name || 'Unknown';
+    console.log('Stream API: Found track:', trackTitle);
     console.log('Stream API: Track URL:', track.url);
     
     // Ensure we have a valid track and URL
@@ -66,24 +77,25 @@ export async function GET(request: NextRequest) {
     // Get stream info using the track URL
     const streamInfo = await playdl.stream(track.url);
     
-    if (!streamInfo || !streamInfo.url) {
+    if (!streamInfo || !streamInfo.stream) {
       return NextResponse.json(
-        { error: 'Unable to get stream URL' },
+        { error: 'Unable to get stream' },
         { status: 500 }
       );
     }
+
+    const thumbnail = track.thumbnails?.[0]?.url || track.thumbnail;
 
     // Return the stream URL and metadata
     return NextResponse.json({
       success: true,
       data: {
-        streamUrl: streamInfo.url,
-        title: track.title,
+        streamUrl: track.url, // Return the original URL for client-side playback
+        title: trackTitle,
         duration: track.durationInSec,
-        thumbnail: track.thumbnails?.[0]?.url,
-        platform: platform,
-        originalUrl: track.url,
-        quality: streamInfo.quality || 'unknown'
+        thumbnail,
+        platform,
+        originalUrl: track.url
       }
     });
 
@@ -115,7 +127,7 @@ export async function POST(request: NextRequest) {
     // Use the GET logic with the constructed query
     const searchParams = new URLSearchParams({
       q: query,
-      platform: platform
+      platform
     });
     
     const getRequest = new NextRequest(`${request.url}?${searchParams.toString()}`);

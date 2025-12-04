@@ -495,508 +495,153 @@ export function SkeletonTrack() {
   );
 }
 
-// Homepage skeleton loader with liquid glass effects that matches the actual layout
+// Homepage skeleton loader - content only (sidebar/navbar rendered by AppLayout)
 export function HomepageSkeleton() {
   return (
-    <div className="h-screen flex flex-col bg-spotify-black">
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar Skeleton */}
-        <div className="w-64 flex-shrink-0 hidden md:block">
-          <div className="flex flex-col h-full liquid-glass border-r border-white/10 text-white">
-            {/* Logo Skeleton */}
-            <motion.div 
-              className="p-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="flex items-center space-x-3">
-                <motion.div 
-                  className="w-10 h-10 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-xl"
-                  animate={{
-                    opacity: [0.4, 0.8, 0.4],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-                <motion.div 
-                  className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded-lg h-6 w-32"
-                  animate={{
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: 0.2,
-                  }}
-                />
-              </div>
-            </motion.div>
-
-            {/* Navigation Skeleton */}
-            <motion.div 
-              className="px-3 space-y-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {[...Array(3)].map((_, i) => (
-                <motion.div
-                  key={`nav-${i}`}
-                  className="flex items-center space-x-3 px-4 py-3 rounded-xl"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: i * 0.1 }}
-                >
-                  <motion.div 
-                    className="w-5 h-5 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded"
-                    animate={{
-                      opacity: [0.4, 0.7, 0.4],
-                    }}
-                    transition={{
-                      duration: 1.5 + i * 0.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: i * 0.1,
-                    }}
-                  />
-                  <motion.div 
-                    className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded h-4 w-20"
-                    animate={{
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{
-                      duration: 1.3 + i * 0.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: i * 0.15,
-                    }}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Create Playlist Button Skeleton */}
-            <motion.div 
-              className="px-6 py-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <motion.div 
-                className="backdrop-blur-md bg-gradient-to-r from-gray-400/20 to-gray-500/10 border border-white/10 rounded-xl h-10 w-full"
-                animate={{
-                  opacity: [0.4, 0.7, 0.4],
-                }}
-                transition={{
-                  duration: 2.2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-            </motion.div>
-
-            {/* Library Section Skeleton */}
-            <motion.div 
-              className="flex-1 px-3 space-y-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <motion.div 
-                className="px-4 py-3 backdrop-blur-sm bg-gradient-to-r from-gray-400/20 to-gray-500/10 border border-white/10 rounded h-4 w-24"
-                animate={{
-                  opacity: [0.3, 0.5, 0.3],
-                }}
-                transition={{
-                  duration: 1.8,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: 0.5,
-                }}
-              />
-              {[...Array(4)].map((_, i) => (
-                <motion.div
-                  key={`library-${i}`}
-                  className="flex items-center space-x-3 px-4 py-3 rounded-xl"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
-                >
-                  <motion.div 
-                    className="w-5 h-5 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded"
-                    animate={{
-                      opacity: [0.4, 0.7, 0.4],
-                    }}
-                    transition={{
-                      duration: 1.4 + i * 0.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 0.5 + i * 0.1,
-                    }}
-                  />
-                  <motion.div 
-                    className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded h-4 w-24"
-                    animate={{
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{
-                      duration: 1.2 + i * 0.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 0.5 + i * 0.15,
-                    }}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Install App Button Skeleton */}
-            <motion.div 
-              className="p-6 border-t border-white/10"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
-              <motion.div 
-                className="backdrop-blur-md bg-gradient-to-r from-gray-400/20 to-gray-500/10 border border-white/10 rounded-xl h-10 w-full"
-                animate={{
-                  opacity: [0.4, 0.7, 0.4],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: 0.8,
-                }}
-              />
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Top Bar Skeleton */}
-          <motion.div 
-            className="sticky top-0 z-10 backdrop-blur-md bg-gradient-to-r from-spotify-gray/80 to-spotify-black/80 border-b border-white/10 p-4"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <motion.div 
-                  className="w-8 h-8 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-full"
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-                <motion.div 
-                  className="w-8 h-8 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-full"
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{
-                    duration: 1.6,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: 0.2,
-                  }}
-                />
-              </div>
-              <motion.div 
-                className="w-10 h-10 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-full"
-                animate={{
-                  opacity: [0.4, 0.7, 0.4],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: 0.4,
-                }}
-              />
-            </div>
-          </motion.div>
-
-          {/* Page Content */}
-          <main className="flex-1 overflow-y-auto bg-gradient-to-b from-spotify-gray/50 to-spotify-black p-6">
-            <div className="space-y-8">
-              {/* Welcome Section Skeleton */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
-              >
-                <motion.div
-                  className="liquid-glass-strong rounded-2xl p-8 mb-6 border border-white/10"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                >
-                  <motion.div 
-                    className="backdrop-blur-sm bg-gradient-to-r from-gray-400/30 to-gray-500/20 border border-white/10 rounded-xl h-10 w-80 mb-4"
-                    animate={{
-                      opacity: [0.4, 0.8, 0.4],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                  />
-                  <motion.div 
-                    className="backdrop-blur-sm bg-gradient-to-r from-gray-500/20 to-gray-400/30 border border-white/10 rounded-lg h-6 w-64"
-                    animate={{
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{
-                      duration: 1.8,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 0.2,
-                    }}
-                  />
-                </motion.div>
-              </motion.div>
-
-              {/* Quick Access Cards Skeleton */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-              >
-                {[...Array(6)].map((_, i) => (
-                  <motion.div
-                    key={`quick-access-${i}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="liquid-glass-hover rounded-xl p-4 flex items-center space-x-4 border border-white/10"
-                  >
-                    <motion.div 
-                      className="w-14 h-14 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-lg"
-                      animate={{
-                        opacity: [0.4, 0.7, 0.4],
-                      }}
-                      transition={{
-                        duration: 1.5 + i * 0.1,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                        delay: i * 0.1,
-                      }}
-                    />
-                    <motion.div 
-                      className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded h-4 w-32"
-                      animate={{
-                        opacity: [0.3, 0.6, 0.3],
-                      }}
-                      transition={{
-                        duration: 1.3 + i * 0.1,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                        delay: i * 0.15,
-                      }}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* Recently Played Section Skeleton */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="liquid-glass rounded-2xl p-6 border border-white/10"
-              >
-                <motion.div 
-                  className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded-lg h-8 w-48 mb-6"
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{
-                    duration: 1.6,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-                <div className="space-y-1">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={`recent-${i}`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: i * 0.1, ease: 'easeOut' }}
-                    >
-                      <SkeletonTrack />
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.section>
-
-              {/* Made For You Section Skeleton */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="liquid-glass rounded-2xl p-6 border border-white/10"
-              >
-                <motion.div 
-                  className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded-lg h-8 w-36 mb-6"
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{
-                    duration: 1.4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: 0.3,
-                  }}
-                />
-                <div className="space-y-1">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={`made-for-you-${i}`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: i * 0.1, ease: 'easeOut' }}
-                    >
-                      <SkeletonTrack />
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.section>
-
-              {/* Popular Playlists Section Skeleton */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="liquid-glass rounded-2xl p-6 border border-white/10"
-              >
-                <motion.div 
-                  className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded-lg h-8 w-44 mb-6"
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                  }}
-                  transition={{
-                    duration: 1.2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: 0.5,
-                  }}
-                />
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={`popular-${i}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: (i * 0.1) + 0.3, ease: 'easeOut' }}
-                    >
-                      <SkeletonCard />
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.section>
-            </div>
-          </main>
+    <div className="space-y-8 animate-fade-in">
+      {/* Welcome Section Skeleton */}
+      <div className="mb-6">
+        <div className="liquid-glass-strong rounded-2xl p-8 border border-white/10">
+          <div className="h-10 w-80 bg-white/10 rounded-xl mb-4 animate-pulse" />
+          <div className="h-6 w-64 bg-white/5 rounded-lg animate-pulse" />
         </div>
       </div>
 
-      {/* Music Player Skeleton */}
-      <motion.div 
-        className="h-20 bg-spotify-dark-gray border-t border-white/10 flex items-center justify-between px-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.8 }}
-      >
-        <div className="flex items-center space-x-4">
-          <motion.div 
-            className="w-14 h-14 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-lg"
-            animate={{
-              opacity: [0.4, 0.7, 0.4],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-          <div className="space-y-2">
-            <motion.div 
-              className="backdrop-blur-sm bg-gradient-to-r from-gray-400/25 to-gray-500/15 border border-white/10 rounded h-4 w-32"
-              animate={{
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 1.8,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: 0.2,
-              }}
-            />
-            <motion.div 
-              className="backdrop-blur-sm bg-gradient-to-r from-gray-500/15 to-gray-400/25 border border-white/10 rounded h-3 w-24"
-              animate={{
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: 1.6,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: 0.4,
-              }}
-            />
+      {/* Quick Access Cards Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={`quick-${i}`}
+            className="flex items-center liquid-glass rounded-lg overflow-hidden"
+          >
+            <div className="w-16 h-16 bg-white/10 animate-pulse" />
+            <div className="flex-1 px-4">
+              <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recently Played Section Skeleton */}
+      <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+        <div className="h-7 w-40 bg-white/10 rounded-lg mb-6 animate-pulse" />
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={`recent-${i}`} className="flex items-center p-3 rounded-lg">
+              <div className="w-8 mr-4">
+                <div className="h-4 w-4 bg-white/10 rounded animate-pulse" />
+              </div>
+              <div className="w-12 h-12 bg-white/10 rounded-md mr-4 animate-pulse" />
+              <div className="flex-1">
+                <div className="h-4 w-32 bg-white/10 rounded mb-2 animate-pulse" />
+                <div className="h-3 w-24 bg-white/5 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Made For You Section Skeleton */}
+      <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+        <div className="h-7 w-32 bg-white/10 rounded-lg mb-6 animate-pulse" />
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={`made-${i}`} className="flex items-center p-3 rounded-lg">
+              <div className="w-8 mr-4">
+                <div className="h-4 w-4 bg-white/10 rounded animate-pulse" />
+              </div>
+              <div className="w-12 h-12 bg-white/10 rounded-md mr-4 animate-pulse" />
+              <div className="flex-1">
+                <div className="h-4 w-32 bg-white/10 rounded mb-2 animate-pulse" />
+                <div className="h-3 w-24 bg-white/5 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Popular Playlists Section Skeleton */}
+      <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+        <div className="h-7 w-36 bg-white/10 rounded-lg mb-6 animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={`playlist-${i}`} className="p-4 rounded-xl bg-white/5">
+              <div className="w-full aspect-square bg-white/10 rounded-lg mb-4 animate-pulse" />
+              <div className="h-4 w-24 bg-white/10 rounded mb-2 animate-pulse" />
+              <div className="h-3 w-16 bg-white/5 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// Search page skeleton loader
+export function SearchPageSkeleton() {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Search Input Skeleton */}
+      <div className="sticky top-0 z-20 py-4 -mx-6 px-6">
+        <div className="liquid-glass-strong rounded-2xl p-4 border border-white/10">
+          <div className="relative max-w-2xl mx-auto">
+            <div className="h-12 bg-white/10 rounded-full animate-pulse" />
           </div>
         </div>
-        
-        <div className="flex items-center space-x-4">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={`player-control-${i}`}
-              className="w-8 h-8 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded-full"
-              animate={{
-                opacity: [0.4, 0.7, 0.4],
-              }}
-              transition={{
-                duration: 1.5 + i * 0.1,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: i * 0.1,
-              }}
-            />
-          ))}
-        </div>
+      </div>
 
-        <div className="flex items-center space-x-4">
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={`player-right-${i}`}
-              className="w-6 h-6 backdrop-blur-sm bg-gradient-to-br from-gray-400/30 to-gray-500/20 border border-white/10 rounded"
-              animate={{
-                opacity: [0.4, 0.7, 0.4],
-              }}
-              transition={{
-                duration: 1.3 + i * 0.1,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: i * 0.15,
-              }}
+      {/* Browse Categories Skeleton */}
+      <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+        <div className="h-7 w-28 bg-white/10 rounded-lg mb-6 animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={`cat-${i}`}
+              className="h-32 rounded-xl bg-gradient-to-br from-white/10 to-white/5 animate-pulse"
             />
           ))}
         </div>
-      </motion.div>
+      </section>
+    </div>
+  );
+}
+
+// Library page skeleton loader
+export function LibraryPageSkeleton() {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header Skeleton */}
+      <div className="liquid-glass-strong rounded-2xl p-6 border border-white/10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-8 w-40 bg-white/10 rounded-lg animate-pulse" />
+          <div className="flex space-x-2">
+            <div className="h-10 w-10 bg-white/10 rounded-lg animate-pulse" />
+            <div className="h-10 w-10 bg-white/10 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        {/* Tabs Skeleton */}
+        <div className="flex space-x-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={`tab-${i}`} className="h-10 w-24 bg-white/10 rounded-full animate-pulse" />
+          ))}
+        </div>
+      </div>
+
+      {/* Content Skeleton */}
+      <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+        <div className="h-7 w-32 bg-white/10 rounded-lg mb-6 animate-pulse" />
+        
+        {/* Grid View Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {[...Array(10)].map((_, i) => (
+            <div key={`item-${i}`} className="p-4 rounded-xl bg-white/5">
+              <div className="w-full aspect-square bg-white/10 rounded-lg mb-4 animate-pulse" />
+              <div className="h-4 w-24 bg-white/10 rounded mb-2 animate-pulse" />
+              <div className="h-3 w-16 bg-white/5 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

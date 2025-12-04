@@ -16,14 +16,6 @@ interface RefreshTokenResponse {
   refresh_token?: string
 }
 
-interface TokenWithSpotify {
-  accessToken?: string
-  refreshToken?: string
-  expiresAt?: number
-  spotifyId?: string
-  error?: string
-}
-
 const scopes = [
   'user-read-email',
   'user-read-private',
@@ -66,32 +58,36 @@ export const authOptions = {
         token.spotifyId = user.id
         
         // Save user to database
-        await connectDB()
-        
-        const existingUser = await User.findOne({ spotifyId: user.id })
-        
-        if (!existingUser) {
-          await User.create({
-            spotifyId: user.id,
-            email: user.email,
-            displayName: user.name,
-            images: (user as SpotifyUser).images || [],
-            accessToken: account.access_token,
-            refreshToken: account.refresh_token,
-            tokenExpiresAt: new Date(account.expires_at! * 1000),
-          })
-        } else {
-          // Update tokens
-          await User.findByIdAndUpdate(existingUser._id, {
-            accessToken: account.access_token,
-            refreshToken: account.refresh_token,
-            tokenExpiresAt: new Date(account.expires_at! * 1000),
-          })
+        try {
+          await connectDB()
+          
+          const existingUser = await User.findOne({ spotifyId: user.id })
+          
+          if (!existingUser) {
+            await User.create({
+              spotifyId: user.id,
+              email: user.email,
+              displayName: user.name,
+              images: (user as SpotifyUser).images || [],
+              accessToken: account.access_token,
+              refreshToken: account.refresh_token,
+              tokenExpiresAt: new Date(account.expires_at! * 1000),
+            })
+          } else {
+            // Update tokens
+            await User.findByIdAndUpdate(existingUser._id, {
+              accessToken: account.access_token,
+              refreshToken: account.refresh_token,
+              tokenExpiresAt: new Date(account.expires_at! * 1000),
+            })
+          }
+        } catch (error) {
+          console.error('Database error in jwt callback:', error)
         }
       }
 
       // Return previous token if the access token has not expired yet
-      if (Date.now() < (token.expiresAt as number) * 1000) {
+      if (token.expiresAt && Date.now() < (token.expiresAt as number) * 1000) {
         return token
       }
 
@@ -101,7 +97,9 @@ export const authOptions = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: { session: any; token: any }) {
       session.accessToken = token.accessToken as string
-      session.user.id = token.spotifyId as string
+      if (session.user) {
+        session.user.id = token.spotifyId as string
+      }
       return session
     },
   },
@@ -112,6 +110,14 @@ export const authOptions = {
   session: {
     strategy: 'jwt' as const,
   },
+}
+
+interface TokenWithSpotify {
+  accessToken?: string
+  refreshToken?: string
+  expiresAt?: number
+  spotifyId?: string
+  error?: string
 }
 
 async function refreshAccessToken(token: TokenWithSpotify): Promise<TokenWithSpotify> {
@@ -139,15 +145,19 @@ async function refreshAccessToken(token: TokenWithSpotify): Promise<TokenWithSpo
     }
 
     // Update database with new tokens
-    await connectDB()
-    await User.findOneAndUpdate(
-      { spotifyId: token.spotifyId },
-      {
-        accessToken: refreshedTokens.access_token,
-        refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
-        tokenExpiresAt: new Date(Date.now() + refreshedTokens.expires_in * 1000),
-      }
-    )
+    try {
+      await connectDB()
+      await User.findOneAndUpdate(
+        { spotifyId: token.spotifyId },
+        {
+          accessToken: refreshedTokens.access_token,
+          refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
+          tokenExpiresAt: new Date(Date.now() + refreshedTokens.expires_in * 1000),
+        }
+      )
+    } catch (error) {
+      console.error('Database error in refreshAccessToken:', error)
+    }
 
     return {
       ...token,

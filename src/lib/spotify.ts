@@ -66,7 +66,7 @@ export class SpotifyService {
 
   async getUserTopTracks(limit = 20, offset = 0, timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term') {
     try {
-      return await this.api.currentUser.topItems('tracks', timeRange, limit, offset)
+      return await this.api.currentUser.topItems('tracks', timeRange, limit as 20, offset)
     } catch (error) {
       console.error('Error fetching user top tracks:', error)
       throw error
@@ -75,7 +75,7 @@ export class SpotifyService {
 
   async getUserTopArtists(limit = 20, offset = 0, timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term') {
     try {
-      return await this.api.currentUser.topItems('artists', timeRange, limit, offset)
+      return await this.api.currentUser.topItems('artists', timeRange, limit as 20, offset)
     } catch (error) {
       console.error('Error fetching user top artists:', error)
       throw error
@@ -158,7 +158,7 @@ export class SpotifyService {
   // Search
   async search(query: string, types: string[] = ['track', 'artist', 'album', 'playlist'], limit = 20) {
     try {
-      return await this.api.search(query, types as ('track' | 'artist' | 'album' | 'playlist')[], 'US', 20)
+      return await this.api.search(query, types as ('track' | 'artist' | 'album' | 'playlist')[], 'US', limit as 20)
     } catch (error) {
       console.error('Error searching:', error)
       throw error
@@ -196,7 +196,7 @@ export class SpotifyService {
 
   async getAlbumTracks(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.albums.tracks(id, 'US', limit, offset)
+      return await this.api.albums.tracks(id, 'US', limit as 50, offset)
     } catch (error) {
       console.error('Error fetching album tracks:', error)
       throw error
@@ -224,7 +224,7 @@ export class SpotifyService {
 
   async getArtistAlbums(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.artists.albums(id, 'album,single', 'US', limit, offset)
+      return await this.api.artists.albums(id, 'album,single', 'US', limit as 50, offset)
     } catch (error) {
       console.error('Error fetching artist albums:', error)
       throw error
@@ -243,7 +243,7 @@ export class SpotifyService {
 
   async getPlaylistTracks(id: string, limit = 50, offset = 0) {
     try {
-      return await this.api.playlists.getPlaylistItems(id, 'US', undefined, limit, offset)
+      return await this.api.playlists.getPlaylistItems(id, 'US', undefined, limit as 50, offset)
     } catch (error) {
       console.error('Error fetching playlist tracks:', error)
       throw error
@@ -460,8 +460,8 @@ export class SpotifyService {
       
       console.log('getBrowseCategories called with:', { limit, offset, validLimit, validOffset })
       
-      // Try different parameter formats based on SDK documentation
-      return await this.api.browse.getCategories('US', { limit: validLimit, offset: validOffset })
+      // @ts-expect-error - SDK type definitions are inconsistent
+      return await this.api.browse.getCategories('US', 'en_US', validLimit, validOffset)
     } catch (error) {
       console.error('Error fetching browse categories:', error)
       throw error

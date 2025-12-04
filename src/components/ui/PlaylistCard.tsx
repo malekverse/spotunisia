@@ -1,9 +1,7 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
-import { Play, Pause, Download } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Play, Download } from 'lucide-react'
 import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { cn } from '@/lib/utils'
 
@@ -25,144 +23,82 @@ interface PlaylistCardProps {
 }
 
 export function PlaylistCard({ playlist, onPlay, onDownload, className }: PlaylistCardProps) {
-  const [isHovered, setIsHovered] = React.useState(false)
-
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      whileHover={{ 
-        scale: 1.05, 
-        y: -8,
-        transition: { type: "spring", damping: 20, stiffness: 300 }
-      }}
-      whileTap={{ scale: 0.98 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+    <div
       className={cn(
-        'group relative liquid-glass-morphing p-6 cursor-pointer transition-all duration-500 liquid-glass-hover border border-white/10 hover:border-white/20 shadow-lg hover:shadow-2xl',
+        'group p-4 rounded-xl cursor-pointer transition-all duration-300',
+        'liquid-glass-hover hover:shadow-xl hover:shadow-black/30',
+        'border border-transparent hover:border-white/10',
         className
       )}
+      onClick={() => onPlay(playlist.id)}
     >
       {/* Playlist Image */}
-      <motion.div 
-        className="relative mb-6 overflow-hidden rounded-xl"
-        whileHover={{ scale: 1.02 }}
-        transition={{ type: "spring", damping: 25, stiffness: 400 }}
-      >
-        <PlaylistImage
-          src={playlist.image}
-          alt={playlist.name}
-          className="shadow-2xl border border-white/10 rounded-xl"
-        />
+      <div className="relative mb-4">
+        <div className="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-2xl transition-all duration-300">
+          <PlaylistImage
+            src={playlist.image}
+            alt={playlist.name}
+            className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
         
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-        
-        {/* Action Buttons Overlay */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 10 }}
-          animate={{ 
-            opacity: isHovered || playlist.isPlaying ? 1 : 0,
-            scale: isHovered || playlist.isPlaying ? 1 : 0.8,
-            y: isHovered || playlist.isPlaying ? 0 : 10
-          }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="absolute bottom-3 right-3 flex gap-2"
-        >
-          {/* Download Button */}
-          {onDownload && (
-            <Button
-              variant="ghost"
-              size="sm"
+        {/* Play Button */}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onPlay(playlist.id)
+            }}
+            className="w-12 h-12 rounded-full bg-spotify-green text-black flex items-center justify-center shadow-lg shadow-spotify-green/30 hover:scale-105 hover:shadow-spotify-green/50 transition-all duration-300"
+          >
+            <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+          </button>
+        </div>
+
+        {/* Download Button */}
+        {onDownload && (
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button
               onClick={(e) => {
                 e.stopPropagation()
                 onDownload(playlist)
               }}
-              className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 hover:scale-110 transition-all duration-300 shadow-2xl border-2 border-white/20"
+              className="w-8 h-8 rounded-full liquid-glass-strong text-white flex items-center justify-center hover:bg-white/20 transition-all duration-300"
             >
-              <Download className="w-5 h-5" />
-            </Button>
-          )}
-          
-          {/* Play Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              // For playlists, we'll just call the original onPlay for now
-              // In a real app, this would play the first track of the playlist
-              onPlay(playlist.id)
-            }}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-spotify-green to-green-400 text-black hover:from-green-400 hover:to-spotify-green hover:scale-110 transition-all duration-300 shadow-2xl border-2 border-white/20"
-          >
-            {playlist.isPlaying ? (
-              <Pause className="w-6 h-6" />
-            ) : (
-              <Play className="w-6 h-6 ml-0.5" />
-            )}
-          </Button>
-        </motion.div>
-
-        {/* Playing Indicator */}
-        {playlist.isPlaying && (
-          <motion.div 
-            className="absolute top-3 left-3"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          >
-            <div className="flex space-x-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 bg-spotify-green rounded-full shadow-lg"
-                  animate={{
-                    height: [4, 12, 4],
-                  }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    delay: i * 0.2,
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
         )}
-      </motion.div>
+
+        {/* Playing indicator */}
+        {playlist.isPlaying && (
+          <div className="absolute top-2 left-2">
+            <div className="flex space-x-0.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+              <div className="w-0.5 bg-spotify-green rounded-full animate-pulse" style={{ height: '8px' }} />
+              <div className="w-0.5 bg-spotify-green rounded-full animate-pulse" style={{ height: '12px', animationDelay: '0.1s' }} />
+              <div className="w-0.5 bg-spotify-green rounded-full animate-pulse" style={{ height: '8px', animationDelay: '0.2s' }} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Playlist Info */}
-      <motion.div 
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <motion.h3 
-          className="font-bold text-white truncate group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-spotify-green group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 text-lg"
-          whileHover={{ x: 2 }}
-        >
+      <div>
+        <h3 className="font-semibold text-white truncate text-sm mb-1 group-hover:text-white transition-colors duration-300">
           {playlist.name}
-        </motion.h3>
-        
+        </h3>
         {playlist.description && (
-          <motion.p 
-            className="text-sm text-spotify-text/80 line-clamp-2 leading-relaxed group-hover:text-spotify-text transition-colors duration-300"
-            whileHover={{ x: 2 }}
-          >
+          <p className="text-xs text-white/40 line-clamp-2 mb-1 group-hover:text-white/60 transition-colors duration-300">
             {playlist.description}
-          </motion.p>
+          </p>
         )}
-        
-        <motion.p 
-          className="text-xs text-spotify-text/60 group-hover:text-spotify-text/80 transition-colors duration-300 font-medium"
-          whileHover={{ x: 2 }}
-        >
-          By {playlist.owner} • {playlist.trackCount} songs
-        </motion.p>
-      </motion.div>
-    </motion.div>
+        <p className="text-xs text-white/30">
+          By {playlist.owner}
+        </p>
+      </div>
+    </div>
   )
 }

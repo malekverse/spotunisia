@@ -1,24 +1,20 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/Button'
+import React, { useState, useEffect, useCallback } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PlaylistCard } from '@/components/ui/PlaylistCard'
 import { TrackCard } from '@/components/ui/TrackCard'
-import { HomepageSkeleton } from '@/components/ui/Loading';
+import { HomepageSkeleton } from '@/components/ui/Loading'
 import { PlaylistImage } from '@/components/ui/ImageWithFallback'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { downloadTrack } from '@/lib/download'
+import { Play, RefreshCw } from 'lucide-react'
 
-
-
-// Types for our data
 interface Playlist {
   id: string
   name: string
-  description: string
+  description?: string
   image: string
   owner: string
   trackCount: number
@@ -32,44 +28,76 @@ interface Track {
   album: string
   duration: number
   image: string
-  preview_url?: string
-  isPlaying: boolean
-  isLiked: boolean
+  preview_url?: string | null
+  isPlaying?: boolean
+  isLiked?: boolean
 }
 
+// Cache for fetched data
+const dataCache: {
+  playlists: Playlist[] | null
+  recent: Track[] | null
+  recommendations: Track[] | null
+  timestamp: number
+} = {
+  playlists: null,
+  recent: null,
+  recommendations: null,
+  timestamp: 0
+}
 
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export default function Home() {
   const { data: session, status } = useSession()
   const router = useRouter()
   
-  // State for real Spotify data
-  const [featuredPlaylists, setFeaturedPlaylists] = useState<Playlist[]>([])
-  const [recentlyPlayed, setRecentlyPlayed] = useState<Track[]>([])
-  const [madeForYou, setMadeForYou] = useState<Track[]>([])
-  const [loading, setLoading] = useState(true)
+  const [featuredPlaylists, setFeaturedPlaylists] = useState<Playlist[]>(dataCache.playlists || [])
+  const [recentlyPlayed, setRecentlyPlayed] = useState<Track[]>(dataCache.recent || [])
+  const [madeForYou, setMadeForYou] = useState<Track[]>(dataCache.recommendations || [])
+  const [loading, setLoading] = useState(!dataCache.playlists)
   const [error, setError] = useState<string | null>(null)
   const [downloadingTrackId, setDownloadingTrackId] = useState<string | null>(null)
+  const [greeting, setGreeting] = useState('') // Avoid hydration mismatch
 
+  // Set greeting on client side only to avoid hydration mismatch
   useEffect(() => {
-    if (status === 'loading') return // Still loading
+    const hour = new Date().getHours()
+    if (hour < 12) setGreeting('morning')
+    else if (hour < 18) setGreeting('afternoon')
+    else setGreeting('evening')
+  }, [])
 
-    if (!session) {
-      // Show fallback data when not authenticated
-      setFallbackData()
+  const setFallbackData = useCallback(() => {
+    const fallbackPlaylists = [
+      { id: 'demo-1', name: 'Demo Playlist', description: 'Sign in to see your playlists', image: '/placeholder-playlist.svg', owner: 'Spotunisia', trackCount: 10 },
+      { id: 'demo-2', name: 'Top Hits', description: 'Popular tracks', image: '/placeholder-playlist.svg', owner: 'Spotunisia', trackCount: 20 },
+    ]
+    const fallbackTracks = [
+      { id: 'demo-track-1', name: 'Demo Song 1', artist: 'Demo Artist', album: 'Demo Album', duration: 180, image: '/placeholder-album.svg', preview_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+      { id: 'demo-track-2', name: 'Demo Song 2', artist: 'Demo Artist', album: 'Demo Album', duration: 210, image: '/placeholder-album.svg', preview_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
+    ]
+    setFeaturedPlaylists(fallbackPlaylists)
+    setRecentlyPlayed(fallbackTracks)
+    setMadeForYou(fallbackTracks)
+    setLoading(false)
+  }, [])
+
+  const fetchSpotifyData = useCallback(async () => {
+    // Check cache first
+    const now = Date.now()
+    if (dataCache.playlists && (now - dataCache.timestamp) < CACHE_DURATION) {
+      setFeaturedPlaylists(dataCache.playlists)
+      setRecentlyPlayed(dataCache.recent || [])
+      setMadeForYou(dataCache.recommendations || [])
+      setLoading(false)
       return
     }
 
-    // Fetch real Spotify data
-    fetchSpotifyData()
-  }, [session, status, router])
-
-  const fetchSpotifyData = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Fetch data from our API endpoints
       const [playlistsRes, recentRes, recommendationsRes] = await Promise.all([
         fetch('/api/spotify/featured-playlists'),
         fetch('/api/spotify/recently-played'),
@@ -86,256 +114,136 @@ export default function Home() {
         recommendationsRes.json()
       ])
 
+      // Update cache
+      dataCache.playlists = playlists
+      dataCache.recent = recent
+      dataCache.recommendations = recommendations
+      dataCache.timestamp = now
+
       setFeaturedPlaylists(playlists)
       setRecentlyPlayed(recent)
       setMadeForYou(recommendations)
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('Error fetching Spotify data:', err)
       setError('Failed to load Spotify data')
-      
-      // Fallback to some basic data
-      setFeaturedPlaylists([
-        {
-          id: 'fallback-1',
-          name: 'Your Music',
-          description: 'Connect to Spotify to see your playlists',
-          image: '/placeholder-playlist.svg',
-          owner: 'You',
-          trackCount: 0,
-        }
-      ])
-      setRecentlyPlayed([])
-      setMadeForYou([])
+      setFallbackData()
     } finally {
       setLoading(false)
     }
-  }
+  }, [setFallbackData])
 
-  const setFallbackData = () => {
-    setLoading(true)
-    
-    // Set fallback playlists
-    setFeaturedPlaylists([
-      {
-        id: 'demo-1',
-        name: 'Demo Playlist',
-        description: 'Sample tracks for testing',
-        image: '/placeholder-playlist.svg',
-        owner: 'Demo',
-        trackCount: 5,
-      },
-      {
-        id: 'demo-2',
-        name: 'Popular Hits',
-        description: 'Sign in to see your real playlists',
-        image: '/placeholder-playlist.svg',
-        owner: 'Demo',
-        trackCount: 10,
-      }
-    ])
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!session) {
+      setFallbackData()
+      return
+    }
+    fetchSpotifyData()
+  }, [session, status, fetchSpotifyData, setFallbackData])
 
-    // Set fallback tracks with preview URLs for testing
-    const fallbackTracks: Track[] = [
-      {
-        id: 'demo-track-1',
-        name: 'Demo Song 1',
-        artist: 'Demo Artist',
-        album: 'Demo Album',
-        duration: 180000,
-        image: '/placeholder-album.svg',
-        preview_url: 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3',
-        isPlaying: false,
-        isLiked: false,
-      },
-      {
-        id: 'demo-track-2',
-        name: 'Demo Song 2',
-        artist: 'Another Artist',
-        album: 'Another Album',
-        duration: 210000,
-        image: '/placeholder-album.svg',
-        preview_url: 'https://commondatastorage.googleapis.com/codeskulptor-assets/week7-brrring.m4a',
-        isPlaying: false,
-        isLiked: false,
-      },
-      {
-        id: 'demo-track-3',
-        name: 'Demo Song 3',
-        artist: 'Third Artist',
-        album: 'Third Album',
-        duration: 195000,
-        image: '/placeholder-album.svg',
-        preview_url: 'https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/intromusic.ogg',
-        isPlaying: false,
-        isLiked: false,
-      }
-    ]
-
-    setRecentlyPlayed(fallbackTracks)
-    setMadeForYou(fallbackTracks)
-    setLoading(false)
-  }
-
-  if (status === 'loading' || loading) {
-    return <HomepageSkeleton />;
-  }
-
-  // Debug logging
-  console.log('🏠 Home page render - Recently played tracks:', recentlyPlayed.length)
-  console.log('🏠 Home page render - Made for you tracks:', madeForYou.length)
-  console.log('🏠 Home page render - Session status:', status)
-
-  const handlePlayPlaylist = (playlistId: string) => {
-    console.log('Playing playlist:', playlistId)
-  }
-
-  const handleDownloadPlaylist = async (playlist: Playlist) => {
-    try {
-      console.log('Downloading playlist:', playlist.name)
-      
-      // For now, we'll create a simple implementation that downloads a few sample tracks
-      // In a real implementation, you'd fetch the actual tracks from the playlist
-      const sampleTracks = [
-        { name: 'Sample Track 1', artist: 'Sample Artist 1' },
-        { name: 'Sample Track 2', artist: 'Sample Artist 2' },
-        { name: 'Sample Track 3', artist: 'Sample Artist 3' }
-      ]
-      
-      const response = await fetch('/api/download-playlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tracks: sampleTracks,
-          platform: 'youtube'
-        }),
+  const handlePlayTrack = (trackId: string) => {
+    const track = [...recentlyPlayed, ...madeForYou].find(t => t.id === trackId)
+    if (track && window.playTrack) {
+      window.playTrack({
+        ...track,
+        preview_url: track.preview_url || undefined
       })
-      
-      if (!response.ok) {
-        throw new Error('Failed to download playlist')
-      }
-      
-      const result = await response.json()
-      console.log('Playlist download initiated:', result)
-      alert(`Playlist "${playlist.name}" download initiated! Check console for details.`)
-    } catch (error) {
-      console.error('Playlist download failed:', error)
-      alert('Playlist download failed. Please try again.')
     }
   }
 
-  const handlePlayTrack = (trackId: string) => {
-    console.log('Playing track:', trackId)
+  const handleLikeTrack = (trackId: string) => {
+    console.log('Like track:', trackId)
   }
 
-  const handleLikeTrack = (trackId: string) => {
-    console.log('Liking track:', trackId)
+  const handlePlayPlaylist = (playlistId: string) => {
+    router.push(`/playlist/${playlistId}`)
+  }
+
+  const handleDownloadPlaylist = (playlist: Playlist) => {
+    console.log('Download playlist:', playlist.id)
   }
 
   const handleDownloadTrack = async (track: Track) => {
+    if (downloadingTrackId) return
+    setDownloadingTrackId(track.id)
     try {
-      setDownloadingTrackId(track.id)
-      console.log('Downloading track:', track.name, 'by', track.artist)
-      
-      await downloadTrack(track.name, track.artist, 'youtube')
-      
-      console.log('Download completed for:', track.name)
+      await downloadTrack(track.name, track.artist, {
+        onProgress: (p) => console.log(`Download: ${p.percentage}%`),
+        onError: (e) => console.error('Download error:', e)
+      })
     } catch (error) {
       console.error('Download failed:', error)
-      alert('Download failed. Please try again.')
     } finally {
       setDownloadingTrackId(null)
     }
   }
 
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 18) return 'Good afternoon'
-    return 'Good evening'
+
+  if (loading && !featuredPlaylists.length) {
+    return (
+      <AppLayout>
+        <HomepageSkeleton />
+      </AppLayout>
+    )
   }
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 animate-fade-in">
         {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="liquid-glass-strong rounded-2xl p-8 mb-6 border border-white/10">
-            <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
-              Good {getGreeting().split(' ')[1]}, {session?.user?.name || 'there'}!
+        <div className="mb-6">
+          <div className="liquid-glass-strong rounded-2xl p-8 border border-white/10 shadow-2xl">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent mb-2">
+              {greeting ? `Good ${greeting}, ` : 'Hello, '}{session?.user?.name || 'there'}!
             </h1>
-            <p className="text-spotify-text text-lg">
+            <p className="text-white/60 text-lg">
               Discover your next favorite song
             </p>
           </div>
           {error && (
-            <div className="liquid-glass-strong border border-red-500/30 rounded-xl p-4 mb-4 animate-fade-in">
+            <div className="mt-4 liquid-glass border border-red-500/20 rounded-xl p-4">
               <p className="text-red-400 text-sm">{error}</p>
-              <Button
-                onClick={fetchSpotifyData}
-                variant="outline"
-                size="sm"
-                className="mt-3"
+              <button 
+                onClick={fetchSpotifyData} 
+                className="mt-2 flex items-center space-x-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-all duration-300"
               >
-                Try again
-              </Button>
+                <RefreshCw className="w-4 h-4" />
+                <span>Try again</span>
+              </button>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Quick Access Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-        >
-          {featuredPlaylists.slice(0, 6).map((playlist, index) => (
-            <motion.div
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {featuredPlaylists.slice(0, 6).map((playlist) => (
+            <div
               key={playlist.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="liquid-glass-hover rounded-xl p-4 flex items-center space-x-4 transition-all duration-300 cursor-pointer group border border-white/10"
               onClick={() => handlePlayPlaylist(playlist.id)}
+              className="flex items-center liquid-glass rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:bg-white/10 hover:shadow-lg group"
             >
-              <div className="w-14 h-14 flex-shrink-0">
+              <div className="w-16 h-16 flex-shrink-0">
                 <PlaylistImage
                   src={playlist.image}
                   alt={playlist.name}
-                  className="w-full h-full rounded-lg shadow-lg"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <span className="font-semibold text-white truncate text-sm">
+              <span className="flex-1 px-4 font-semibold text-white text-sm truncate">
                 {playlist.name}
               </span>
-              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-110">
-                <div className="w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center shadow-lg hover-glow">
-                  <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
+              <div className="pr-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center shadow-lg shadow-spotify-green/30 hover:scale-105 transition-transform duration-300">
+                  <Play className="w-5 h-5 text-black ml-0.5" fill="currentColor" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Recently Played */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="liquid-glass rounded-2xl p-6 border border-white/10"
-        >
-          <h2 className="text-3xl font-bold text-white mb-6 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
-            Recently played
-          </h2>
+        <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+          <h2 className="text-2xl font-bold text-white mb-6">Recently played</h2>
           <div className="space-y-1">
             {recentlyPlayed.map((track, index) => (
               <TrackCard
@@ -350,18 +258,11 @@ export default function Home() {
               />
             ))}
           </div>
-        </motion.section>
+        </section>
 
         {/* Made for You */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="liquid-glass rounded-2xl p-6 border border-white/10"
-        >
-          <h2 className="text-3xl font-bold text-white mb-6 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
-            Made for you
-          </h2>
+        <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+          <h2 className="text-2xl font-bold text-white mb-6">Made for you</h2>
           <div className="space-y-1">
             {madeForYou.map((track, index) => (
               <TrackCard
@@ -376,18 +277,11 @@ export default function Home() {
               />
             ))}
           </div>
-        </motion.section>
+        </section>
 
         {/* Popular Playlists */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="liquid-glass rounded-2xl p-6 border border-white/10"
-        >
-          <h2 className="text-3xl font-bold text-white mb-6 bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent">
-            Popular playlists
-          </h2>
+        <section className="liquid-glass rounded-2xl p-6 border border-white/5">
+          <h2 className="text-2xl font-bold text-white mb-6">Popular playlists</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {featuredPlaylists.map((playlist) => (
               <PlaylistCard
@@ -398,7 +292,7 @@ export default function Home() {
               />
             ))}
           </div>
-        </motion.section>
+        </section>
       </div>
     </AppLayout>
   )

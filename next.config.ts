@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: "https",
+        hostname: "campaigns-service.spotifycdn.com",
+        pathname: "/**",
+      },
     ],
   },
 };

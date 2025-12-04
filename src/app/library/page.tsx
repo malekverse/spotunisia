@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PlaylistCard } from '@/components/ui/PlaylistCard'
 import { TrackCard } from '@/components/ui/TrackCard'
-import { Loading } from '@/components/ui/Loading'
+import { Loading, LibraryPageSkeleton } from '@/components/ui/Loading'
 import { cn } from '@/lib/utils'
 
 
@@ -181,9 +181,9 @@ export default function LibraryPage() {
   // Show loading while checking authentication
   if (status === 'loading') {
     return (
-      <div className="h-screen flex items-center justify-center bg-spotify-black">
-        <Loading variant="music" size="lg" />
-      </div>
+      <AppLayout>
+        <LibraryPageSkeleton />
+      </AppLayout>
     )
   }
 
@@ -204,12 +204,12 @@ export default function LibraryPage() {
     console.log('Liking track:', trackId)
   }
 
-  const handleDownloadTrack = async (track: any) => {
+  const handleDownloadTrack = async (track: { id: string; name: string; artist: string }) => {
     try {
       setDownloadingTrackId(track.id)
       console.log('Downloading track:', track.name, 'by', track.artist)
       
-      await downloadTrack(track.name, track.artist, 'youtube')
+      await downloadTrack(track.name, track.artist)
       
       console.log('Download completed for:', track.name)
     } catch (error) {
@@ -220,7 +220,7 @@ export default function LibraryPage() {
     }
   }
 
-  const handleDownloadPlaylist = async (playlist: any) => {
+  const handleDownloadPlaylist = async (playlist: { name: string }) => {
     try {
       console.log('Downloading playlist:', playlist.name)
       
@@ -238,8 +238,7 @@ export default function LibraryPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          tracks: sampleTracks,
-          platform: 'youtube'
+          tracks: sampleTracks
         }),
       })
       

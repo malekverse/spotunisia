@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { memo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { 
   Home, 
   Search, 
@@ -16,207 +15,120 @@ import {
   TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/Button'
 
 const sidebarItems = [
-  {
-    title: 'Home',
-    href: '/',
-    icon: Home,
-  },
-  {
-    title: 'Search',
-    href: '/search',
-    icon: Search,
-  },
-  {
-    title: 'Your Library',
-    href: '/library',
-    icon: Library,
-  },
+  { title: 'Home', href: '/', icon: Home },
+  { title: 'Search', href: '/search', icon: Search },
+  { title: 'Your Library', href: '/library', icon: Library },
 ]
 
 const libraryItems = [
-  {
-    title: 'Liked Songs',
-    href: '/library?tab=liked',
-    icon: Heart,
-  },
-  {
-    title: 'Downloaded',
-    href: '/library?tab=downloaded',
-    icon: Download,
-  },
-  {
-    title: 'Recently Played',
-    href: '/library?tab=recent',
-    icon: Music,
-  },
-  {
-    title: 'AI Recommendations',
-    href: '/ai-recommendations',
-    icon: TrendingUp,
-  },
+  { title: 'Liked Songs', href: '/library?tab=liked', icon: Heart },
+  { title: 'Downloaded', href: '/library?tab=downloaded', icon: Download },
+  { title: 'Recently Played', href: '/library?tab=recent', icon: Music },
+  { title: 'AI Recommendations', href: '/ai-recommendations', icon: TrendingUp },
 ]
 
 interface SidebarProps {
   className?: string
 }
 
-export function Sidebar({ className }: SidebarProps) {
+function SidebarComponent({ className }: SidebarProps) {
   const pathname = usePathname()
 
   return (
-    <div className={cn('flex flex-col h-full liquid-glass border-r border-white/10 text-white', className)}>
+    <div className={cn(
+      'flex flex-col h-full liquid-glass border-r border-white/10',
+      className
+    )}>
       {/* Logo */}
-      <motion.div 
-        className="p-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="p-6">
         <Link href="/" className="flex items-center space-x-3 group">
-          <motion.div 
-            className="w-10 h-10 bg-gradient-to-br from-spotify-green to-green-400 rounded-xl flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <div className="w-10 h-10 bg-gradient-to-br from-spotify-green via-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-spotify-green/20 group-hover:shadow-spotify-green/40 transition-all duration-300 group-hover:scale-105">
             <Mic2 className="w-6 h-6 text-white" />
-          </motion.div>
-          <span className="text-xl font-bold bg-gradient-to-r from-white to-spotify-green bg-clip-text text-transparent group-hover:from-spotify-green group-hover:to-white transition-all duration-300">
-            Spotify Clone
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+            Spotunisia
           </span>
         </Link>
-      </motion.div>
+      </div>
 
       {/* Main Navigation */}
-      <motion.nav 
-        className="px-3 space-y-2"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
-        {sidebarItems.map((item, index) => {
+      <nav className="px-3 space-y-1">
+        {sidebarItems.map((item) => {
           const isActive = pathname === item.href
           return (
-            <motion.div
+            <Link
               key={item.href}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, x: 4 }}
-              whileTap={{ scale: 0.98 }}
+              href={item.href}
+              className={cn(
+                'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+                isActive
+                  ? 'liquid-glass-strong text-white shadow-lg'
+                  : 'text-white/70 hover:text-white hover:bg-white/5'
+              )}
             >
-              <Link
-                href={item.href}
-                className={cn(
-                  'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden',
-                  isActive
-                    ? 'liquid-glass-strong text-white shadow-lg border border-white/20'
-              : 'text-spotify-text hover:text-white liquid-glass-hover hover:border hover:border-white/10'
-                )}
-              >
-                <item.icon className={cn(
-                  "w-5 h-5 transition-all duration-300",
-                  isActive ? "text-spotify-green" : "group-hover:text-spotify-green"
-                )} />
-                <span className="relative z-10">{item.title}</span>
-                {isActive && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-spotify-green/20 to-transparent rounded-xl"
-                    layoutId="activeNavItem"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </Link>
-            </motion.div>
+              <item.icon className={cn(
+                "w-5 h-5 transition-colors duration-300",
+                isActive ? "text-spotify-green" : "group-hover:text-spotify-green"
+              )} />
+              <span>{item.title}</span>
+              {isActive && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-spotify-green shadow-lg shadow-spotify-green/50" />
+              )}
+            </Link>
           )
         })}
-      </motion.nav>
+      </nav>
 
       {/* Create Playlist Button */}
-      <motion.div 
-        className="px-6 py-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <Button
-          variant="default"
-          className="liquid-glass-hover w-full justify-start text-white hover:text-spotify-green border border-white/10 hover:border-spotify-green/50"
-        >
-          <div className='flex justify-start '>
-          <Plus className="w-5 h-5 mr-3" />
-          Create Playlist
+      <div className="px-3 py-4">
+        <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white liquid-glass-hover border border-white/5 hover:border-white/10 transition-all duration-300">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center">
+            <Plus className="w-4 h-4" />
           </div>
-        </Button>
-      </motion.div>
+          <span>Create Playlist</span>
+        </button>
+      </div>
 
       {/* Library Section */}
-      <motion.div 
-        className="flex-1 px-3 space-y-2"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <div className="px-4 py-3 text-xs font-semibold text-spotify-text uppercase tracking-wider border-b border-white/10">
+      <div className="flex-1 px-3 space-y-1">
+        <div className="px-4 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider">
           Your Library
         </div>
-        {libraryItems.map((item, index) => {
-          const isActive = pathname === item.href
+        {libraryItems.map((item) => {
+          const isActive = pathname === item.href || 
+            (item.href.includes('?tab=') && pathname === '/library' && item.href.includes(pathname))
           return (
-            <motion.div
+            <Link
               key={item.href}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-              whileHover={{ scale: 1.02, x: 4 }}
-              whileTap={{ scale: 0.98 }}
+              href={item.href}
+              className={cn(
+                'flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300',
+                isActive
+                  ? 'liquid-glass-strong text-white'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              )}
             >
-              <Link
-                href={item.href}
-                className={cn(
-                  'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden',
-                  isActive
-                    ? 'liquid-glass-strong text-white shadow-lg border border-white/20'
-                : 'text-spotify-text hover:text-white liquid-glass-hover hover:border hover:border-white/10'
-                )}
-              >
-                <item.icon className={cn(
-                  "w-5 h-5 transition-all duration-300",
-                  isActive ? "text-spotify-green" : "group-hover:text-spotify-green"
-                )} />
-                <span className="relative z-10">{item.title}</span>
-                {isActive && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-spotify-green/20 to-transparent rounded-xl"
-                    layoutId="activeLibraryItem"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </Link>
-            </motion.div>
+              <item.icon className={cn(
+                "w-5 h-5",
+                isActive ? "text-spotify-green" : ""
+              )} />
+              <span>{item.title}</span>
+            </Link>
           )
         })}
-      </motion.div>
+      </div>
 
       {/* Install App */}
-      <motion.div 
-        className="p-6 border-t border-white/10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-      >
-        <Button
-          variant="gradient"
-          className="w-full justify-start text-white shadow-lg hover:shadow-xl"
-          >
-          <div className='flex'>
-            <Download className="w-5 h-5 mr-3" />
-            <p>Install App</p>
-          </div>
-        </Button>
-      </motion.div>
+      <div className="p-4 border-t border-white/5">
+        <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-spotify-green to-green-400 text-black hover:shadow-lg hover:shadow-spotify-green/30 transition-all duration-300 hover:scale-[1.02]">
+          <Download className="w-4 h-4" />
+          <span>Install App</span>
+        </button>
+      </div>
     </div>
   )
 }
+
+export const Sidebar = memo(SidebarComponent)

@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import playdl from 'play-dl';
 
-interface PlaylistTrack {
-  trackName: string;
-  artistName?: string;
-  downloadUrl?: string;
-  error?: string;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { tracks, platform = 'youtube', quality = 'high', format = 'json' } = body;
+    const { tracks, platform = 'youtube', format = 'json' } = body;
     
     if (!tracks || !Array.isArray(tracks) || tracks.length === 0) {
       return NextResponse.json(
@@ -20,8 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results: PlaylistTrack[] = [];
-    const downloadPromises = tracks.map(async (track: any, index: number) => {
+    const downloadPromises = tracks.map(async (track: { trackName?: string; artistName?: string }, index: number) => {
       try {
         const { trackName, artistName } = track;
         
@@ -67,29 +59,17 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        const foundTrack = searchResults[0];
-        
-        // Get stream info for download URL
-        const streamInfo = await playdl.stream(foundTrack.url, {
-          quality: quality === 'high' ? 'high' : 'low'
-        });
-        
-        if (!streamInfo || !streamInfo.url) {
-          return {
-            trackName,
-            artistName,
-            error: 'Unable to get download stream'
-          };
-        }
+        const foundTrack = searchResults[0] as { url: string; title?: string; name?: string; durationInSec?: number; thumbnails?: { url: string }[]; thumbnail?: string };
+        const title = foundTrack.title || foundTrack.name || trackName;
+        const thumbnail = foundTrack.thumbnails?.[0]?.url || foundTrack.thumbnail;
 
         return {
           trackName,
           artistName,
-          downloadUrl: streamInfo.url,
-          title: foundTrack.title,
+          sourceUrl: foundTrack.url,
+          title,
           duration: foundTrack.durationInSec,
-          thumbnail: foundTrack.thumbnails?.[0]?.url,
-          originalUrl: foundTrack.url
+          thumbnail
         };
 
       } catch (error) {
@@ -149,7 +129,6 @@ export async function GET(request: NextRequest) {
           { trackName: 'Song Name', artistName: 'Artist Name' }
         ],
         platform: 'youtube | soundcloud (default: youtube)',
-        quality: 'high | low (default: high)',
         format: 'json | zip (default: json, zip not yet implemented)'
       }
     }
