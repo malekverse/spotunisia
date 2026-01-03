@@ -2,6 +2,7 @@
 
 import React, { useEffect, useCallback, memo } from 'react'
 import { Sidebar } from './Sidebar'
+import { MobileNav } from './MobileNav'
 import { TopBar } from './TopBar'
 import { MusicPlayer } from '../player/MusicPlayer'
 import ChatBot from '../ai/ChatBot'
@@ -103,9 +104,9 @@ export function AppLayout({
     <div className="h-screen flex flex-col bg-spotify-black">
       <div className={cn(
         "flex flex-1 overflow-hidden",
-        currentTrack ? "pb-20" : "pb-0"
+        currentTrack ? "pb-20 md:pb-20" : "pb-20 md:pb-0"
       )}>
-        {/* Sidebar - memoized */}
+        {/* Sidebar - Desktop only */}
         <div className="w-60 flex-shrink-0 hidden md:block">
           <Sidebar />
         </div>
@@ -128,11 +129,14 @@ export function AppLayout({
 
       {/* Music Player - always render but hide when no track */}
       <div className={cn(
-        "fixed bottom-0 left-0 right-0 transition-transform duration-300",
+        "fixed bottom-0 left-0 right-0 transition-transform duration-300 z-30",
         currentTrack ? "translate-y-0" : "translate-y-full"
       )}>
         <MusicPlayer />
       </div>
+
+      {/* Mobile Navigation - Mobile only */}
+      <MobileNav hasActivePlayer={!!currentTrack} />
 
       {/* AI Chatbot */}
       <ChatBot currentTrack={currentTrack ?? undefined} />

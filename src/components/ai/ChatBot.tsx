@@ -190,7 +190,7 @@ const ChatBot = ({ currentTrack }: ChatBotProps) => {
                 duration: 0.4
               }
             }}
-            className="fixed bottom-32 right-6 w-[420px] h-[650px] backdrop-blur-2xl border border-white/30 rounded-3xl shadow-2xl z-40 flex flex-col overflow-hidden"
+            className="fixed bottom-4 md:bottom-32 left-4 right-4 md:left-auto md:right-6 md:w-[420px] h-[calc(100vh-120px)] md:h-[650px] backdrop-blur-2xl border border-white/30 rounded-3xl shadow-2xl z-40 flex flex-col overflow-hidden"
              style={{
                background: `
                  linear-gradient(135deg, 
@@ -602,6 +602,7 @@ const ChatBot = ({ currentTrack }: ChatBotProps) => {
           onClick={() => setIsChatBotVisible(true)} 
           hasNewMessage={false}
           bottomOffset={currentTrack ? 120 : 24}
+          mobileBottomOffset={currentTrack ? 168 : 88}
         />
       )}
     </>
@@ -613,63 +614,122 @@ interface ChatButtonProps {
   onClick: () => void
   hasNewMessage?: boolean
   bottomOffset?: number
+  mobileBottomOffset?: number
 }
 
-export function ChatButton({ onClick, hasNewMessage, bottomOffset = 24 }: ChatButtonProps) {
+export function ChatButton({ onClick, hasNewMessage, bottomOffset = 24, mobileBottomOffset = 88 }: ChatButtonProps) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      className="fixed right-6 z-40"
-      style={{ bottom: `${bottomOffset}px` }}
-    >
-      <motion.button
-        onClick={onClick}
-        className="w-16 h-16 rounded-full backdrop-blur-2xl border border-white/30 shadow-2xl relative overflow-hidden group transition-all duration-300 flex items-center justify-center"
-        style={{
-          background: `
-            linear-gradient(135deg, 
-              rgba(29, 185, 84, 0.9) 0%, 
-              rgba(30, 215, 96, 0.8) 25%,
-              rgba(29, 185, 84, 0.7) 50%, 
-              rgba(0, 0, 0, 0.3) 75%,
-              rgba(29, 185, 84, 0.4) 100%
-            )
-          `,
-          boxShadow: `
-            0 25px 50px rgba(29, 185, 84, 0.4), 
-            0 0 0 1px rgba(255, 255, 255, 0.2), 
-            inset 0 2px 4px rgba(255, 255, 255, 0.3),
-            inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-            0 0 30px rgba(29, 185, 84, 0.2)
-          `
-        }}
-        whileHover={{
-          boxShadow: '0 25px 50px rgba(29, 185, 84, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
-        }}
-        animate={{
-          boxShadow: [
-            '0 20px 40px rgba(29, 185, 84, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-            '0 25px 50px rgba(29, 185, 84, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15)',
-            '0 20px 40px rgba(29, 185, 84, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-          ]
-        }}
-        transition={{ duration: 3, repeat: Infinity, type: "tween" }}
+    <>
+      {/* Mobile Button */}
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="md:hidden fixed right-4 z-50"
+        style={{ bottom: `${mobileBottomOffset}px` }}
       >
-        <MessageCircle className="w-7 h-7 text-black relative z-10" />
-        
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-        
-        {hasNewMessage && (
-          <motion.div 
-            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1, repeat: Infinity, type: "tween" }}
-          />
-        )}
-      </motion.button>
-    </motion.div>
+        <motion.button
+          onClick={onClick}
+          className="w-14 h-14 rounded-full backdrop-blur-2xl border border-white/30 shadow-2xl relative overflow-hidden group transition-all duration-300 flex items-center justify-center"
+          style={{
+            background: `
+              linear-gradient(135deg, 
+                rgba(29, 185, 84, 0.9) 0%, 
+                rgba(30, 215, 96, 0.8) 25%,
+                rgba(29, 185, 84, 0.7) 50%, 
+                rgba(0, 0, 0, 0.3) 75%,
+                rgba(29, 185, 84, 0.4) 100%
+              )
+            `,
+            boxShadow: `
+              0 25px 50px rgba(29, 185, 84, 0.4), 
+              0 0 0 1px rgba(255, 255, 255, 0.2), 
+              inset 0 2px 4px rgba(255, 255, 255, 0.3),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+              0 0 30px rgba(29, 185, 84, 0.2)
+            `
+          }}
+          whileHover={{
+            boxShadow: '0 25px 50px rgba(29, 185, 84, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+          }}
+          animate={{
+            boxShadow: [
+              '0 20px 40px rgba(29, 185, 84, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+              '0 25px 50px rgba(29, 185, 84, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15)',
+              '0 20px 40px rgba(29, 185, 84, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity, type: "tween" }}
+        >
+          <MessageCircle className="w-6 h-6 text-black relative z-10" />
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          
+          {hasNewMessage && (
+            <motion.div 
+              className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white shadow-lg"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity, type: "tween" }}
+            />
+          )}
+        </motion.button>
+      </motion.div>
+      
+      {/* Desktop Button */}
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="hidden md:block fixed right-6 z-50"
+        style={{ bottom: `${bottomOffset}px` }}
+      >
+        <motion.button
+          onClick={onClick}
+          className="w-16 h-16 rounded-full backdrop-blur-2xl border border-white/30 shadow-2xl relative overflow-hidden group transition-all duration-300 flex items-center justify-center"
+          style={{
+            background: `
+              linear-gradient(135deg, 
+                rgba(29, 185, 84, 0.9) 0%, 
+                rgba(30, 215, 96, 0.8) 25%,
+                rgba(29, 185, 84, 0.7) 50%, 
+                rgba(0, 0, 0, 0.3) 75%,
+                rgba(29, 185, 84, 0.4) 100%
+              )
+            `,
+            boxShadow: `
+              0 25px 50px rgba(29, 185, 84, 0.4), 
+              0 0 0 1px rgba(255, 255, 255, 0.2), 
+              inset 0 2px 4px rgba(255, 255, 255, 0.3),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+              0 0 30px rgba(29, 185, 84, 0.2)
+            `
+          }}
+          whileHover={{
+            boxShadow: '0 25px 50px rgba(29, 185, 84, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+          }}
+          animate={{
+            boxShadow: [
+              '0 20px 40px rgba(29, 185, 84, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+              '0 25px 50px rgba(29, 185, 84, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15)',
+              '0 20px 40px rgba(29, 185, 84, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity, type: "tween" }}
+        >
+          <MessageCircle className="w-7 h-7 text-black relative z-10" />
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          
+          {hasNewMessage && (
+            <motion.div 
+              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity, type: "tween" }}
+            />
+          )}
+        </motion.button>
+      </motion.div>
+    </>
   )
 }
 
